@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "FrankyBLE"
-include(":app")
+dependencyResolutionManagement { }
+pluginManagement { }
