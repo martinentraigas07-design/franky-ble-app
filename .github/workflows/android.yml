@@ -19,11 +19,14 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Give permission to gradlew
-        run: chmod +x gradlew
+      - name: Download Gradle
+        run: |
+          curl -L https://services.gradle.org/distributions/gradle-6.5-bin.zip -o gradle.zip
+          unzip gradle.zip
 
       - name: Build APK
-        run: ./gradlew assembleDebug
+        run: |
+          ./gradle-6.5/bin/gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
