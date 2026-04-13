@@ -6,10 +6,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.ConsoleMessage
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -47,32 +49,49 @@ class BlocklyFragment : Fragment() {
         observeEvents()
     }
 
+    // ---- Tab switching -------------------------------------------------------
+
     private fun setupTabs() {
-        binding.tabEditor.setOnClickListener {
-            binding.panelEditor.visibility = View.VISIBLE
-            binding.panelInstructions.visibility = View.GONE
-            binding.tabEditor.background =
-                resources.getDrawable(R.drawable.bg_tab_active, null)
-            binding.tabEditor.setTextColor(resources.getColor(R.color.white, null))
-            binding.tabInstructions.background =
-                resources.getDrawable(R.drawable.bg_tab_inactive, null)
-            binding.tabInstructions.setTextColor(resources.getColor(R.color.txt2, null))
-        }
+        selectTab(editorActive = true)   // initial state
+
+        binding.tabEditor.setOnClickListener { selectTab(editorActive = true) }
         binding.tabInstructions.setOnClickListener {
-            binding.panelEditor.visibility = View.GONE
-            binding.panelInstructions.visibility = View.VISIBLE
-            binding.tabInstructions.background =
-                resources.getDrawable(R.drawable.bg_tab_active, null)
-            binding.tabInstructions.setTextColor(resources.getColor(R.color.white, null))
-            binding.tabEditor.background =
-                resources.getDrawable(R.drawable.bg_tab_inactive, null)
-            binding.tabEditor.setTextColor(resources.getColor(R.color.txt2, null))
             binding.tvInstructions.text = sentInstructions.toString()
+            selectTab(editorActive = false)
         }
         binding.btnBackFromBlockly.setOnClickListener {
             findNavController().popBackStack()
         }
     }
+
+    /**
+     * Switches the visual state of the two tabs.
+     * Uses ContextCompat — no deprecated API.
+     */
+    private fun selectTab(editorActive: Boolean) {
+        val ctx = requireContext()
+        if (editorActive) {
+            binding.panelEditor.visibility = View.VISIBLE
+            binding.panelInstructions.visibility = View.GONE
+            binding.tabEditor.background =
+                ContextCompat.getDrawable(ctx, R.drawable.bg_tab_active)
+            binding.tabEditor.setTextColor(ContextCompat.getColor(ctx, R.color.white))
+            binding.tabInstructions.background =
+                ContextCompat.getDrawable(ctx, R.drawable.bg_tab_inactive)
+            binding.tabInstructions.setTextColor(ContextCompat.getColor(ctx, R.color.txt2))
+        } else {
+            binding.panelEditor.visibility = View.GONE
+            binding.panelInstructions.visibility = View.VISIBLE
+            binding.tabInstructions.background =
+                ContextCompat.getDrawable(ctx, R.drawable.bg_tab_active)
+            binding.tabInstructions.setTextColor(ContextCompat.getColor(ctx, R.color.white))
+            binding.tabEditor.background =
+                ContextCompat.getDrawable(ctx, R.drawable.bg_tab_inactive)
+            binding.tabEditor.setTextColor(ContextCompat.getColor(ctx, R.color.txt2))
+        }
+    }
+
+    // ---- WebView setup -------------------------------------------------------
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun setupWebView() {
@@ -81,38 +100,54 @@ class BlocklyFragment : Fragment() {
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
             settings.allowFileAccess = true
+
             webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView?, url: String?) {
+                    if (!isAdded) return
                     binding.statusDot.setBackgroundColor(
-                        resources.getColor(R.color.ok, null)
+                        ContextCompat.getColor(requireContext(), R.color.ok)
                     )
                     binding.tvStatusText.text = "Editor listo"
                 }
             }
+
             webChromeClient = object : WebChromeClient() {
-                override fun onConsoleMessage(
-                    message: android.webkit.ConsoleMessage?
-                ): Boolean = true
+                override fun onConsoleMessage(msg: ConsoleMessage?): Boolean = true
             }
+
             addJavascriptInterface(AndroidBridge(), "AndroidInterface")
             loadUrl("file:///android_asset/blockly/index.html")
         }
         binding.tvStatusText.text = "Cargando editor Blockly…"
     }
 
+    // ---- Send button ---------------------------------------------------------
+
     private fun setupSendButton() {
         binding.btnSendBlockly.setOnClickListener {
-            binding.webView.evaluateJavascript("getXmlForAndroid()") { xml ->
-                val clean = xml?.trim('"')?.replace("\\\"", "\"")
-                    ?.replace("\\'", "'")?.replace("\\n", "\n")
-                if (clean.isNullOrBlank() || clean.length < 30) {
+            binding.webView.evaluateJavascript("getXmlForAndroid()") { xmlRaw ->
+                if (!isAdded) return@evaluateJavascript
+                // evaluateJavascript returns a JSON string — strip the outer quotes
+                // and unescape internal escape sequences
+                val xml = xmlRaw
+                    ?.removePrefix("\"")
+                    ?.removeSuffix("\"")
+                    ?.replace("\\\"", "\"")
+                    ?.replace("\\'", "'")
+                    ?.replace("\\n", "\n")
+                    ?.replace("\\\\", "\\")
+                    ?: ""
+
+                if (xml.length < 30) {
                     showNotif("Workspace vacío", "#FFA000")
                 } else {
-                    vm.sendXml(clean)
+                    vm.sendXml(xml)
                 }
             }
         }
     }
+
+    // ---- UI event observer ---------------------------------------------------
 
     private fun observeEvents() {
         viewLifecycleOwner.lifecycleScope.launch {
@@ -128,9 +163,9 @@ class BlocklyFragment : Fragment() {
                             binding.pbXml.visibility = View.GONE
                             binding.tvBadge.text = "OK"
                             binding.tvStatusText.text = "Programa cargado ✓"
-                            showNotif("¡Cargado en FRANKY!", "#00C853")
                             sentInstructions.clear()
                             sentInstructions.append("// Último programa enviado exitosamente")
+                            showNotif("¡Cargado en FRANKY!", "#00C853")
                         }
                         is UiEvent.XmlError -> {
                             binding.pbXml.visibility = View.GONE
@@ -145,16 +180,22 @@ class BlocklyFragment : Fragment() {
         }
     }
 
+    // ---- Helpers -------------------------------------------------------------
+
     private fun showNotif(msg: String, color: String) {
-        val js = "showNotif('$msg', '$color')"
-        binding.webView.post { binding.webView.evaluateJavascript(js, null) }
+        if (!isAdded) return
+        binding.webView.post {
+            binding.webView.evaluateJavascript("showNotif('$msg','$color')", null)
+        }
     }
+
+    // ---- JS Bridge -----------------------------------------------------------
 
     inner class AndroidBridge {
         @JavascriptInterface
         fun enviar(xml: String) {
             if (xml.length < 30) {
-                binding.webView.post { showNotif("Workspace vacío", "#FFA000") }
+                requireActivity().runOnUiThread { showNotif("Workspace vacío", "#FFA000") }
                 return
             }
             vm.sendXml(xml)
@@ -163,13 +204,14 @@ class BlocklyFragment : Fragment() {
         @JavascriptInterface
         fun updateBlockCount(count: Int) {
             requireActivity().runOnUiThread {
-                binding.tvBlockCount.text = "$count bloques"
+                if (isAdded) binding.tvBlockCount.text = "$count bloques"
             }
         }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        binding.webView.destroy()
         _binding = null
     }
 }

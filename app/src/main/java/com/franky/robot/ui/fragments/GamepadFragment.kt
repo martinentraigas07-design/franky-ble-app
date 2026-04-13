@@ -6,6 +6,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -24,10 +25,10 @@ class GamepadFragment : Fragment() {
     private val binding get() = _binding!!
     private val vm: RobotViewModel by lazy { (requireActivity() as MainActivity).viewModel }
 
-    private val activePointers = mutableMapOf<Int, String>()   // pointerId → direction
+    // Maps pointerId → direction string for multi-touch D-PAD
+    private val activePointers = mutableMapOf<Int, String>()
     private var lastDpadCmd = "S"
-    private var lastJoyCmd = "S"
-    private var currentSpeed = 200
+    private var lastJoyCmd  = "S"
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -38,45 +39,55 @@ class GamepadFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupModeButtons()
         setupDpad()
         setupJoystick()
         setupSpeedControls()
         setupSensors()
-
         binding.btnBack.setOnClickListener {
             vm.stop()
             findNavController().popBackStack()
         }
     }
 
-    // ---- Mode selector ----
+    // ── Mode selector ─────────────────────────────────────────────────────────
+
     private fun setupModeButtons() {
+        setModeStyle(dpadActive = true)   // D-PAD is default
+
         binding.btnModeDpad.setOnClickListener {
             binding.frameDpad.visibility = View.VISIBLE
-            binding.frameJoy.visibility = View.GONE
-            applyModeStyle(dpadActive = true)
-            vm.stop(); lastDpadCmd = "S"; lastJoyCmd = "S"
+            binding.frameJoy.visibility  = View.GONE
+            setModeStyle(dpadActive = true)
+            vm.stop()
+            lastDpadCmd = "S"
+            lastJoyCmd  = "S"
         }
         binding.btnModeJoy.setOnClickListener {
             binding.frameDpad.visibility = View.GONE
-            binding.frameJoy.visibility = View.VISIBLE
-            applyModeStyle(dpadActive = false)
-            vm.stop(); lastDpadCmd = "S"; lastJoyCmd = "S"
+            binding.frameJoy.visibility  = View.VISIBLE
+            setModeStyle(dpadActive = false)
+            vm.stop()
+            lastDpadCmd = "S"
+            lastJoyCmd  = "S"
         }
     }
 
-    private fun applyModeStyle(dpadActive: Boolean) {
-        binding.btnModeDpad.setBackgroundColor(
-            resources.getColor(if (dpadActive) R.color.acc else R.color.bg3, null)
-        )
-        binding.btnModeJoy.setBackgroundColor(
-            resources.getColor(if (!dpadActive) R.color.acc else R.color.bg3, null)
-        )
+    /** Applies active/inactive tint to the two mode buttons using ContextCompat. */
+    private fun setModeStyle(dpadActive: Boolean) {
+        val ctx = requireContext()
+        binding.btnModeDpad.backgroundTintList =
+            android.content.res.ColorStateList.valueOf(
+                ContextCompat.getColor(ctx, if (dpadActive) R.color.acc else R.color.bg3)
+            )
+        binding.btnModeJoy.backgroundTintList =
+            android.content.res.ColorStateList.valueOf(
+                ContextCompat.getColor(ctx, if (!dpadActive) R.color.acc else R.color.bg3)
+            )
     }
 
-    // ---- D-PAD ----
+    // ── D-PAD ─────────────────────────────────────────────────────────────────
+
     private fun setupDpad() {
         val touchListener = View.OnTouchListener { v, event ->
             val dir = when (v.id) {
@@ -84,11 +95,11 @@ class GamepadFragment : Fragment() {
                 R.id.btnD -> "D"
                 R.id.btnL -> "L"
                 R.id.btnR -> "R"
-                else -> null
-            } ?: return@OnTouchListener false
-
+                else       -> return@OnTouchListener false
+            }
             when (event.actionMasked) {
-                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
+                MotionEvent.ACTION_DOWN,
+                MotionEvent.ACTION_POINTER_DOWN -> {
                     activePointers[event.getPointerId(event.actionIndex)] = dir
                     recalcDpad()
                 }
@@ -106,10 +117,12 @@ class GamepadFragment : Fragment() {
         binding.btnD.setOnTouchListener(touchListener)
         binding.btnL.setOnTouchListener(touchListener)
         binding.btnR.setOnTouchListener(touchListener)
+
         binding.btnDpadStop.setOnTouchListener { _, event ->
             if (event.actionMasked == MotionEvent.ACTION_DOWN) {
                 activePointers.clear()
-                vm.stop(); lastDpadCmd = "S"
+                vm.stop()
+                lastDpadCmd = "S"
             }
             true
         }
@@ -122,11 +135,11 @@ class GamepadFragment : Fragment() {
             dirs.contains("U") && dirs.contains("L") -> "FL"
             dirs.contains("D") && dirs.contains("R") -> "BR"
             dirs.contains("D") && dirs.contains("L") -> "BL"
-            dirs.contains("U") -> "F"
-            dirs.contains("D") -> "B"
-            dirs.contains("L") -> "L"
-            dirs.contains("R") -> "R"
-            else -> "S"
+            dirs.contains("U")                       -> "F"
+            dirs.contains("D")                       -> "B"
+            dirs.contains("L")                       -> "L"
+            dirs.contains("R")                       -> "R"
+            else                                     -> "S"
         }
         if (cmd != lastDpadCmd) {
             lastDpadCmd = cmd
@@ -134,7 +147,8 @@ class GamepadFragment : Fragment() {
         }
     }
 
-    // ---- Joystick ----
+    // ── Joystick ──────────────────────────────────────────────────────────────
+
     private fun setupJoystick() {
         binding.joystick.onMove = { left, right ->
             val cmd = "M:$left,$right"
@@ -151,11 +165,11 @@ class GamepadFragment : Fragment() {
         }
     }
 
-    // ---- Speed & Turbo ----
+    // ── Speed & Turbo ─────────────────────────────────────────────────────────
+
     private fun setupSpeedControls() {
         binding.seekSpeed.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar?, progress: Int, fromUser: Boolean) {
-                currentSpeed = progress
                 val pct = (progress * 100f / 255f).roundToInt()
                 binding.tvSpeedPct.text = "$pct%"
                 if (fromUser) vm.setSpeed(progress)
@@ -171,31 +185,37 @@ class GamepadFragment : Fragment() {
 
         binding.btnStop.setOnClickListener {
             activePointers.clear()
-            lastDpadCmd = "S"; lastJoyCmd = "S"
+            lastDpadCmd = "S"
+            lastJoyCmd  = "S"
             vm.stop()
         }
     }
 
-    // ---- Sensor updates ----
+    // ── Live sensor readout ───────────────────────────────────────────────────
+
     private fun setupSensors() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 vm.sensorData.collect { s ->
+                    // ADC0 value + percentage bar
                     binding.tvAdcVal.text = s.adc0.toString()
-                    val pct = (s.adc0 * 100f / 4095f).roundToInt()
+                    val pct = (s.adc0 * 100f / 4095f).roundToInt().coerceIn(0, 100)
                     binding.tvAdcPct.text = "$pct%"
-                    // Update bar width
-                    val barParentWidth = binding.adcBar.parent as? View
-                    val parentW = (binding.adcBar.parent as? View)?.width ?: 0
-                    if (parentW > 0) {
-                        val params = binding.adcBar.layoutParams
-                        params.width = (parentW * pct / 100f).toInt()
-                        binding.adcBar.layoutParams = params
+
+                    // Proportional bar — update width post-layout
+                    binding.adcBar.post {
+                        val parentW = (binding.adcBar.parent as? View)?.width ?: 0
+                        if (parentW > 0) {
+                            val lp = binding.adcBar.layoutParams
+                            lp.width = (parentW * pct / 100f).toInt()
+                            binding.adcBar.layoutParams = lp
+                        }
                     }
+
                     binding.tvTempVal.text =
                         if (s.temp == 0f) "-- °C" else "%.1f °C".format(s.temp)
                     binding.tvHumVal.text =
-                        if (s.hum == 0f) "-- %" else "%.1f %%".format(s.hum)
+                        if (s.hum == 0f) "-- %"  else "%.1f %%".format(s.hum)
                 }
             }
         }

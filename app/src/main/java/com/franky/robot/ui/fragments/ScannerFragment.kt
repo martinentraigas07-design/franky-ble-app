@@ -1,7 +1,6 @@
 package com.franky.robot.ui.fragments
 
 import android.bluetooth.BluetoothDevice
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -18,7 +17,9 @@ import com.franky.robot.R
 import com.franky.robot.databinding.FragmentScannerBinding
 import com.franky.robot.domain.ConnectionStatus
 import com.franky.robot.ui.viewmodel.RobotViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ScannerFragment : Fragment() {
 
@@ -29,7 +30,7 @@ class ScannerFragment : Fragment() {
 
     private val deviceList = mutableListOf<BluetoothDevice>()
     private val displayList = mutableListOf<String>()
-    private lateinit var adapter: ArrayAdapter<String>
+    private lateinit var listAdapter: ArrayAdapter<String>
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -41,17 +42,17 @@ class ScannerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        adapter = object : ArrayAdapter<String>(
+        listAdapter = object : ArrayAdapter<String>(
             requireContext(), R.layout.item_device, R.id.tvDevName, displayList
         ) {
-            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-                val v = super.getView(position, convertView, parent)
-                val d = deviceList.getOrNull(position)
-                v.findViewById<TextView>(R.id.tvDevAddr)?.text = d?.address ?: ""
+            override fun getView(pos: Int, convertView: View?, parent: ViewGroup): View {
+                val v = super.getView(pos, convertView, parent)
+                v.findViewById<TextView>(R.id.tvDevAddr)?.text =
+                    deviceList.getOrNull(pos)?.address ?: ""
                 return v
             }
         }
-        binding.lvDevices.adapter = adapter
+        binding.lvDevices.adapter = listAdapter
 
         binding.lvDevices.setOnItemClickListener { _, _, i, _ ->
             val device = deviceList.getOrNull(i) ?: return@setOnItemClickListener
@@ -62,13 +63,16 @@ class ScannerFragment : Fragment() {
 
         binding.btnScan.setOnClickListener { startScanning() }
 
-        // Observe connection status → navigate to dashboard when connected
+        // Observe status → navigate to dashboard when connected
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 vm.connectionStatus.collect { status ->
-                    updateUi(status)
+                    updateStatusUi(status)
                     if (status == ConnectionStatus.CONNECTED) {
-                        findNavController().navigate(R.id.action_scanner_to_dashboard)
+                        // Guard: only navigate if we're still on this screen
+                        if (findNavController().currentDestination?.id == R.id.scannerFragment) {
+                            findNavController().navigate(R.id.action_scanner_to_dashboard)
+                        }
                     }
                 }
             }
@@ -78,26 +82,30 @@ class ScannerFragment : Fragment() {
     }
 
     private fun startScanning() {
+        vm.ble.stopScan()
         deviceList.clear()
         displayList.clear()
-        adapter.notifyDataSetChanged()
+        listAdapter.notifyDataSetChanged()
         binding.tvEmpty.visibility = View.GONE
         binding.progressScan.visibility = View.VISIBLE
         binding.tvScanStatus.text = "Buscando dispositivos FRANKY…"
 
         vm.ble.startScan { device ->
-            requireActivity().runOnUiThread {
+            // BLE callbacks arrive on a background thread → switch to Main
+            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+                if (!isAdded) return@launch
                 if (deviceList.none { it.address == device.address }) {
                     deviceList.add(device)
                     displayList.add(device.name ?: "FRANKY (desconocido)")
-                    adapter.notifyDataSetChanged()
+                    listAdapter.notifyDataSetChanged()
                     binding.tvEmpty.visibility = View.GONE
                 }
             }
         }
 
-        // Show "no devices" after timeout
-        view?.postDelayed({
+        // Show "no devices" message after 8-second timeout
+        binding.root.postDelayed({
+            if (!isAdded) return@postDelayed
             if (deviceList.isEmpty()) {
                 binding.tvEmpty.visibility = View.VISIBLE
                 binding.progressScan.visibility = View.GONE
@@ -106,7 +114,7 @@ class ScannerFragment : Fragment() {
         }, 8000)
     }
 
-    private fun updateUi(status: ConnectionStatus) {
+    private fun updateStatusUi(status: ConnectionStatus) {
         when (status) {
             ConnectionStatus.SCANNING -> {
                 binding.tvScanStatus.text = "Escaneando…"
@@ -128,6 +136,7 @@ class ScannerFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        vm.ble.stopScan()
         _binding = null
     }
 }

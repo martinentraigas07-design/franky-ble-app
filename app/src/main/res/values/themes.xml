@@ -42,7 +42,7 @@
         <item name="android:textColor">@color/white</item>
     </style>
 
-    <style name="FrankyBtn.Dark">
+    <style name="FrankyBtn.Dark" parent="Widget.MaterialComponents.Button.OutlinedButton">
         <item name="backgroundTint">@color/bg3</item>
         <item name="android:textColor">@color/txt</item>
         <item name="strokeColor">@color/brd</item>

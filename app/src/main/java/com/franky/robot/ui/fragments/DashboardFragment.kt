@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -33,18 +34,20 @@ class DashboardFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.btnEStop.setOnClickListener { vm.eStop() }
+
         binding.btnGoGamepad.setOnClickListener {
-            findNavController().navigate(R.id.action_dashboard_to_gamepad)
+            navigateSafe(R.id.action_dashboard_to_gamepad)
         }
         binding.btnGoBlockly.setOnClickListener {
-            findNavController().navigate(R.id.action_dashboard_to_blockly)
+            navigateSafe(R.id.action_dashboard_to_blockly)
         }
         binding.btnGoPanel.setOnClickListener {
-            findNavController().navigate(R.id.action_dashboard_to_panel)
+            navigateSafe(R.id.action_dashboard_to_panel)
         }
         binding.btnDisconnect.setOnClickListener {
             vm.disconnect()
-            findNavController().navigate(R.id.action_dashboard_to_scanner)
+            // disconnect() triggers ConnectionStatus.DISCONNECTED which
+            // is collected below and handles the navigation back.
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -60,8 +63,10 @@ class DashboardFragment : Fragment() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 vm.sensorData.collect { s ->
                     binding.tvAdc.text = s.adc0.toString()
-                    binding.tvTemp.text = if (s.temp == 0f) "-- °C" else "%.1f °C".format(s.temp)
-                    binding.tvHum.text = if (s.hum == 0f) "-- %" else "%.1f %%".format(s.hum)
+                    binding.tvTemp.text =
+                        if (s.temp == 0f) "-- °C" else "%.1f °C".format(s.temp)
+                    binding.tvHum.text =
+                        if (s.hum == 0f) "-- %" else "%.1f %%".format(s.hum)
                 }
             }
         }
@@ -73,21 +78,38 @@ class DashboardFragment : Fragment() {
                         ConnectionStatus.CONNECTED -> {
                             binding.tvConnChip.text = "CONECTADO"
                             binding.tvConnChip.setTextColor(
-                                resources.getColor(R.color.ok, null)
+                                ContextCompat.getColor(requireContext(), R.color.ok)
                             )
                         }
                         ConnectionStatus.DISCONNECTED -> {
                             binding.tvConnChip.text = "DESCONECTADO"
                             binding.tvConnChip.setTextColor(
-                                resources.getColor(R.color.danger, null)
+                                ContextCompat.getColor(requireContext(), R.color.danger)
                             )
-                            // Auto-navigate back to scanner
-                            findNavController().navigate(R.id.action_dashboard_to_scanner)
+                            // Guard: only navigate when we are still the current destination.
+                            // StateFlow replays its last value to new collectors, so without
+                            // this guard a second subscription would fire DISCONNECTED again
+                            // crashing with IllegalArgumentException.
+                            if (findNavController().currentDestination?.id == R.id.dashboardFragment) {
+                                navigateSafe(R.id.action_dashboard_to_scanner)
+                            }
                         }
                         else -> {}
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Wraps navigate() in a try-catch so double-taps or reentrant calls
+     * don't crash with IllegalArgumentException / IllegalStateException.
+     */
+    private fun navigateSafe(actionId: Int) {
+        try {
+            findNavController().navigate(actionId)
+        } catch (e: IllegalArgumentException) {
+            // Action not valid from current destination — already navigated
         }
     }
 

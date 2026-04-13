@@ -12,8 +12,8 @@
         android:layout_height="wrap_content"
         android:background="@drawable/bg_toolbar"
         android:orientation="horizontal"
-        android:paddingHorizontal="14dp"
-        android:paddingVertical="10dp"
+        android:paddingStart="14dp" android:paddingEnd="14dp"
+        android:paddingTop="10dp" android:paddingBottom="10dp"
         android:gravity="center_vertical">
 
         <LinearLayout
@@ -42,8 +42,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_badge"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="3dp"
+            android:paddingStart="10dp" android:paddingEnd="10dp"
+            android:paddingTop="3dp" android:paddingBottom="3dp"
             android:text="BLE"
             android:textColor="@color/white"
             android:textSize="11sp"
@@ -60,7 +60,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="14dp"
+            android:paddingStart="14dp" android:paddingEnd="14dp"
             android:paddingTop="14dp"
             android:paddingBottom="20dp">
 
@@ -93,7 +93,7 @@
                     android:textColor="@color/warn"
                     android:textSize="14sp"
                     android:gravity="center"
-                    android:paddingVertical="12dp" />
+                    android:paddingTop="12dp" android:paddingBottom="12dp" />
 
                 <ProgressBar
                     android:id="@+id/progressScan"
@@ -139,7 +139,7 @@
                     android:textColor="@color/txt2"
                     android:textSize="13sp"
                     android:gravity="center"
-                    android:paddingVertical="16dp"
+                    android:paddingTop="16dp" android:paddingBottom="16dp"
                     android:visibility="gone" />
 
             </LinearLayout>
@@ -164,7 +164,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="La app busca dispositivos BLE cuyo nombre comience con \"FRANKY\". Mantené el robot encendido y cerca."
+                    android:text="La app busca dispositivos BLE cuyo nombre comience con &quot;FRANKY&quot;. Mantené el robot encendido y cerca."
                     android:textColor="#90CAF9"
                     android:textSize="12sp" />
             </LinearLayout>

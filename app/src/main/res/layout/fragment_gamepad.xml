@@ -12,8 +12,8 @@
         android:layout_height="wrap_content"
         android:background="@drawable/bg_toolbar"
         android:orientation="horizontal"
-        android:paddingHorizontal="14dp"
-        android:paddingVertical="10dp"
+        android:paddingStart="14dp" android:paddingEnd="14dp"
+        android:paddingTop="10dp" android:paddingBottom="10dp"
         android:gravity="center_vertical">
 
         <LinearLayout
@@ -28,8 +28,8 @@
                 android:text="Control Manual" android:textColor="@color/txt2" android:textSize="11sp" />
         </LinearLayout>
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:background="@drawable/bg_badge" android:paddingHorizontal="10dp"
-            android:paddingVertical="3dp" android:text="GAMEPAD"
+            android:background="@drawable/bg_badge" android:paddingStart="10dp" android:paddingEnd="10dp"
+            android:paddingTop="3dp" android:paddingBottom="3dp" android:text="GAMEPAD"
             android:textColor="@color/white" android:textSize="11sp" android:textStyle="bold" />
     </LinearLayout>
 
@@ -42,7 +42,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="14dp"
+            android:paddingStart="14dp" android:paddingEnd="14dp"
             android:paddingTop="14dp"
             android:paddingBottom="20dp">
 
@@ -268,7 +268,7 @@
 
                 <!-- ADC0 row with bar -->
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:orientation="vertical" android:paddingVertical="8dp">
+                    android:orientation="vertical" android:paddingTop="8dp" android:paddingBottom="8dp">
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                         android:orientation="horizontal" android:gravity="center_vertical">
                         <TextView android:layout_width="0dp" android:layout_height="wrap_content"
@@ -293,7 +293,7 @@
 
                 <!-- Temp row -->
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:orientation="horizontal" android:paddingVertical="8dp">
+                    android:orientation="horizontal" android:paddingTop="8dp" android:paddingBottom="8dp">
                     <TextView android:layout_width="0dp" android:layout_height="wrap_content"
                         android:layout_weight="1" android:text="Temperatura"
                         android:textColor="@color/txt2" android:textSize="13sp" />
@@ -306,7 +306,7 @@
 
                 <!-- Hum row -->
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:orientation="horizontal" android:paddingVertical="8dp">
+                    android:orientation="horizontal" android:paddingTop="8dp" android:paddingBottom="8dp">
                     <TextView android:layout_width="0dp" android:layout_height="wrap_content"
                         android:layout_weight="1" android:text="Humedad"
                         android:textColor="@color/txt2" android:textSize="13sp" />
