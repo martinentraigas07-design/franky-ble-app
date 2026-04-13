@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">FRANKY 4.0</string>
+    <string name="sub_title">Panel de Control BLE</string>
+    <string name="scanning">ESCANEANDO…</string>
+    <string name="connecting">CONECTANDO…</string>
+    <string name="connected">CONECTADO</string>
+    <string name="disconnected">DESCONECTADO</string>
+    <string name="stop_all">■■ PARAR TODO</string>
+    <string name="gamepad">🎮 Gamepad</string>
+    <string name="bloques">⬛ Programación Bloques</string>
+    <string name="panel">⚙ Panel Industrial</string>
+    <string name="back">⌂ Volver</string>
+    <string name="dpad">D-PAD</string>
+    <string name="joystick">JOYSTICK</string>
+    <string name="speed">Velocidad</string>
+    <string name="turbo">TURBO</string>
+    <string name="stop">■ STOP</string>
+    <string name="send_to_franky">▶ CARGAR A FRANKY</string>
+    <string name="disconnect">Desconectar</string>
+    <string name="scan_again">Escanear de nuevo</string>
+    <string name="no_devices">Sin dispositivos FRANKY encontrados</string>
+    <string name="permission_needed">Se necesitan permisos Bluetooth para continuar.</string>
+</resources>

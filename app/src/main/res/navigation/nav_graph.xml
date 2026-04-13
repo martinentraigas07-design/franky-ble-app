@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/scannerFragment">
+
+    <fragment
+        android:id="@+id/scannerFragment"
+        android:name="com.franky.robot.ui.fragments.ScannerFragment"
+        android:label="Scanner">
+        <action
+            android:id="@+id/action_scanner_to_dashboard"
+            app:destination="@id/dashboardFragment"
+            app:popUpTo="@id/scannerFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/dashboardFragment"
+        android:name="com.franky.robot.ui.fragments.DashboardFragment"
+        android:label="Dashboard">
+        <action
+            android:id="@+id/action_dashboard_to_gamepad"
+            app:destination="@id/gamepadFragment" />
+        <action
+            android:id="@+id/action_dashboard_to_blockly"
+            app:destination="@id/blocklyFragment" />
+        <action
+            android:id="@+id/action_dashboard_to_panel"
+            app:destination="@id/panelFragment" />
+        <action
+            android:id="@+id/action_dashboard_to_scanner"
+            app:destination="@id/scannerFragment"
+            app:popUpTo="@id/dashboardFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/gamepadFragment"
+        android:name="com.franky.robot.ui.fragments.GamepadFragment"
+        android:label="Gamepad" />
+
+    <fragment
+        android:id="@+id/blocklyFragment"
+        android:name="com.franky.robot.ui.fragments.BlocklyFragment"
+        android:label="Bloques" />
+
+    <fragment
+        android:id="@+id/panelFragment"
+        android:name="com.franky.robot.ui.fragments.PanelFragment"
+        android:label="Panel" />
+
+</navigation>

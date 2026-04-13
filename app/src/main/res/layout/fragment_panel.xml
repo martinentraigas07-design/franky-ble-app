@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    android:orientation="vertical">
+
+    <!-- Toolbar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_toolbar"
+        android:orientation="horizontal"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="10dp"
+        android:gravity="center_vertical">
+
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="FRANKY 4.0" android:textColor="@color/txt"
+                android:textSize="17sp" android:textStyle="bold" android:letterSpacing="0.05" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Panel Industrial" android:textColor="@color/txt2" android:textSize="11sp" />
+        </LinearLayout>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:background="@drawable/bg_badge" android:paddingHorizontal="10dp"
+            android:paddingVertical="3dp" android:text="PANEL"
+            android:textColor="@color/white" android:textSize="11sp" android:textStyle="bold" />
+    </LinearLayout>
+
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:paddingHorizontal="14dp"
+            android:paddingTop="14dp" android:paddingBottom="20dp">
+
+            <!-- ADC card -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:background="@drawable/bg_card" android:orientation="vertical"
+                android:padding="14dp" android:layout_marginBottom="12dp">
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="ENTRADAS ANALÓGICAS (ADC)"
+                    android:textColor="@color/acc2" android:textSize="12sp"
+                    android:textStyle="bold" android:letterSpacing="0.08"
+                    android:paddingBottom="7dp" android:layout_marginBottom="2dp" />
+                <View android:layout_width="match_parent" android:layout_height="1dp"
+                    android:background="@color/brd" android:layout_marginBottom="8dp"/>
+
+                <!-- ADC0 row -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="vertical" android:paddingVertical="6dp">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center_vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="ADC0" android:textColor="@color/ok"
+                            android:textSize="10sp" android:textStyle="bold"
+                            android:paddingHorizontal="6dp" android:paddingVertical="2dp"
+                            android:background="#00C85322" android:layout_marginEnd="8dp" />
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:text="GPIO0"
+                            android:textColor="@color/txt2" android:textSize="12sp" />
+                        <TextView android:id="@+id/tvAdc0"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="-" android:textColor="@color/txt"
+                            android:textSize="14sp" android:textStyle="bold"
+                            android:fontFamily="monospace" android:layout_marginEnd="6dp" />
+                        <TextView android:id="@+id/tvAdc0Pct"
+                            android:layout_width="36dp" android:layout_height="wrap_content"
+                            android:text="-" android:textColor="@color/txt2"
+                            android:textSize="11sp" android:gravity="end" />
+                    </LinearLayout>
+                    <FrameLayout android:layout_width="match_parent" android:layout_height="6dp"
+                        android:background="@color/bg3" android:layout_marginTop="4dp">
+                        <View android:id="@+id/barAdc0"
+                            android:layout_width="0dp" android:layout_height="6dp"
+                            android:background="@color/acc" />
+                    </FrameLayout>
+                </LinearLayout>
+                <View android:layout_width="match_parent" android:layout_height="1dp"
+                    android:background="@color/brd" android:layout_marginVertical="2dp"/>
+
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="Rango: 0 (0V) a 4095 (3.3V). Frecuencia de muestreo: BLE notify."
+                    android:textColor="@color/txt2" android:textSize="11sp" android:layout_marginTop="6dp" />
+            </LinearLayout>
+
+            <!-- Temp/Humidity card -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:background="@drawable/bg_card" android:orientation="vertical"
+                android:padding="14dp" android:layout_marginBottom="12dp">
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="SENSOR DHT22 — TEMPERATURA Y HUMEDAD"
+                    android:textColor="@color/acc2" android:textSize="12sp"
+                    android:textStyle="bold" android:letterSpacing="0.08"
+                    android:paddingBottom="7dp" android:layout_marginBottom="2dp" />
+                <View android:layout_width="match_parent" android:layout_height="1dp"
+                    android:background="@color/brd" android:layout_marginBottom="0dp"/>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:paddingVertical="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Temperatura"
+                        android:textColor="@color/txt2" android:textSize="13sp" />
+                    <TextView android:id="@+id/tvDhtTemp"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="-- °C" android:textColor="@color/txt"
+                        android:textSize="13sp" android:textStyle="bold" android:fontFamily="monospace" />
+                </LinearLayout>
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/brd"/>
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:paddingVertical="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Humedad"
+                        android:textColor="@color/txt2" android:textSize="13sp" />
+                    <TextView android:id="@+id/tvDhtHum"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="-- %" android:textColor="@color/txt"
+                        android:textSize="13sp" android:textStyle="bold" android:fontFamily="monospace" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Control General card -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:background="@drawable/bg_card" android:orientation="vertical"
+                android:padding="14dp" android:layout_marginBottom="12dp">
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="CONTROL GENERAL"
+                    android:textColor="@color/acc2" android:textSize="12sp"
+                    android:textStyle="bold" android:letterSpacing="0.08"
+                    android:paddingBottom="7dp" android:layout_marginBottom="2dp" />
+                <View android:layout_width="match_parent" android:layout_height="1dp"
+                    android:background="@color/brd" android:layout_marginBottom="0dp"/>
+
+                <!-- Speed -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:paddingVertical="8dp">
+                    <TextView android:layout_width="100dp" android:layout_height="wrap_content"
+                        android:text="Velocidad" android:textColor="@color/txt2" android:textSize="13sp" />
+                    <SeekBar android:id="@+id/seekSpeedPanel"
+                        android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:max="255" android:progress="200"
+                        android:progressTint="@color/acc" android:thumbTint="@color/acc2" />
+                    <TextView android:id="@+id/tvSpeedPanel"
+                        android:layout_width="40dp" android:layout_height="wrap_content"
+                        android:text="78%" android:textColor="@color/txt"
+                        android:textSize="13sp" android:fontFamily="monospace" android:gravity="end" />
+                </LinearLayout>
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/brd"/>
+
+                <!-- Mode row -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:paddingVertical="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Modo activo"
+                        android:textColor="@color/txt2" android:textSize="13sp" />
+                    <TextView android:id="@+id/tvPanelMode"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="IDLE" android:textColor="@color/acc2"
+                        android:textSize="11sp" android:textStyle="bold"
+                        android:paddingHorizontal="8dp" android:paddingVertical="2dp" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- PARAR TODO -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPanelEStop"
+                style="@style/FrankyBtn.Red"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="■■  PARAR TODO"
+                android:textSize="16sp"
+                android:layout_marginBottom="10dp" />
+
+            <!-- Back -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPanelBack"
+                style="@style/FrankyBtn.Dark"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="⌂  Volver"
+                android:textSize="13sp" />
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

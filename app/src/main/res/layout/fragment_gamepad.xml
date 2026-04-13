@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    android:orientation="vertical">
+
+    <!-- Toolbar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_toolbar"
+        android:orientation="horizontal"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="10dp"
+        android:gravity="center_vertical">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="FRANKY 4.0" android:textColor="@color/txt"
+                android:textSize="17sp" android:textStyle="bold" android:letterSpacing="0.05" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Control Manual" android:textColor="@color/txt2" android:textSize="11sp" />
+        </LinearLayout>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:background="@drawable/bg_badge" android:paddingHorizontal="10dp"
+            android:paddingVertical="3dp" android:text="GAMEPAD"
+            android:textColor="@color/white" android:textSize="11sp" android:textStyle="bold" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="14dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="20dp">
+
+            <!-- Mode selector card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_card"
+                android:orientation="vertical"
+                android:padding="14dp"
+                android:layout_marginBottom="12dp">
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="MODO DE CONTROL" android:textColor="@color/acc2"
+                    android:textSize="12sp" android:textStyle="bold" android:letterSpacing="0.08"
+                    android:layout_marginBottom="10dp" />
+
+                <!-- Mode tabs — mirrors .mode-sel from gamepad.html -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:layout_marginBottom="16dp">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnModeDpad"
+                        style="@style/FrankyBtn.Orange"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_weight="1"
+                        android:text="D-PAD"
+                        android:textSize="12sp"
+                        android:layout_marginEnd="4dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnModeJoy"
+                        style="@style/FrankyBtn.Dark"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_weight="1"
+                        android:text="JOYSTICK"
+                        android:textSize="12sp"
+                        android:layout_marginStart="4dp" />
+                </LinearLayout>
+
+                <!-- D-PAD panel -->
+                <FrameLayout
+                    android:id="@+id/frameDpad"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="240dp"
+                        android:layout_height="240dp"
+                        android:layout_gravity="center">
+
+                        <!-- UP -->
+                        <TextView
+                            android:id="@+id/btnU"
+                            android:layout_width="75dp"
+                            android:layout_height="75dp"
+                            android:background="@drawable/bg_dpad_btn"
+                            android:text="▲"
+                            android:textSize="26sp"
+                            android:textColor="@color/txt"
+                            android:gravity="center"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent" />
+
+                        <!-- DOWN -->
+                        <TextView
+                            android:id="@+id/btnD"
+                            android:layout_width="75dp"
+                            android:layout_height="75dp"
+                            android:background="@drawable/bg_dpad_btn"
+                            android:text="▼"
+                            android:textSize="26sp"
+                            android:textColor="@color/txt"
+                            android:gravity="center"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent" />
+
+                        <!-- LEFT -->
+                        <TextView
+                            android:id="@+id/btnL"
+                            android:layout_width="75dp"
+                            android:layout_height="75dp"
+                            android:background="@drawable/bg_dpad_btn"
+                            android:text="◀"
+                            android:textSize="26sp"
+                            android:textColor="@color/txt"
+                            android:gravity="center"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent" />
+
+                        <!-- STOP center -->
+                        <TextView
+                            android:id="@+id/btnDpadStop"
+                            android:layout_width="75dp"
+                            android:layout_height="75dp"
+                            android:background="@drawable/bg_dpad_stop"
+                            android:text="⬛"
+                            android:textSize="22sp"
+                            android:textColor="@color/danger"
+                            android:gravity="center"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent" />
+
+                        <!-- RIGHT -->
+                        <TextView
+                            android:id="@+id/btnR"
+                            android:layout_width="75dp"
+                            android:layout_height="75dp"
+                            android:background="@drawable/bg_dpad_btn"
+                            android:text="▶"
+                            android:textSize="26sp"
+                            android:textColor="@color/txt"
+                            android:gravity="center"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </FrameLayout>
+
+                <!-- Joystick panel -->
+                <FrameLayout
+                    android:id="@+id/frameJoy"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone">
+
+                    <com.franky.robot.ui.components.JoystickView
+                        android:id="@+id/joystick"
+                        android:layout_width="220dp"
+                        android:layout_height="220dp"
+                        android:layout_gravity="center" />
+                </FrameLayout>
+
+            </LinearLayout>
+
+            <!-- Speed card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_card"
+                android:orientation="vertical"
+                android:padding="14dp"
+                android:layout_marginBottom="12dp">
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="VELOCIDAD" android:textColor="@color/acc2"
+                    android:textSize="12sp" android:textStyle="bold" android:letterSpacing="0.08"
+                    android:layout_marginBottom="10dp" />
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+                    <TextView android:layout_width="60dp" android:layout_height="wrap_content"
+                        android:text="PWM" android:textColor="@color/txt2" android:textSize="13sp" />
+                    <SeekBar
+                        android:id="@+id/seekSpeed"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:max="255"
+                        android:progress="200"
+                        android:progressTint="@color/acc"
+                        android:thumbTint="@color/acc2" />
+                    <TextView
+                        android:id="@+id/tvSpeedPct"
+                        android:layout_width="40dp"
+                        android:layout_height="wrap_content"
+                        android:text="78%"
+                        android:textColor="@color/txt"
+                        android:textSize="13sp"
+                        android:fontFamily="monospace"
+                        android:gravity="end" />
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnTurbo"
+                        style="@style/FrankyBtn.Green"
+                        android:layout_width="0dp"
+                        android:layout_height="52dp"
+                        android:layout_weight="1"
+                        android:text="⚡ TURBO"
+                        android:textSize="13sp"
+                        android:layout_marginEnd="6dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnStop"
+                        style="@style/FrankyBtn.Red"
+                        android:layout_width="0dp"
+                        android:layout_height="52dp"
+                        android:layout_weight="1"
+                        android:text="■ STOP"
+                        android:textSize="14sp"
+                        android:layout_marginStart="6dp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Sensores live card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_card"
+                android:orientation="vertical"
+                android:padding="14dp"
+                android:layout_marginBottom="12dp">
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="SENSORES EN VIVO" android:textColor="@color/acc2"
+                    android:textSize="12sp" android:textStyle="bold" android:letterSpacing="0.08"
+                    android:paddingBottom="7dp" android:layout_marginBottom="2dp" />
+                <View android:layout_width="match_parent" android:layout_height="1dp"
+                    android:background="@color/brd" android:layout_marginBottom="0dp"/>
+
+                <!-- ADC0 row with bar -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="vertical" android:paddingVertical="8dp">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center_vertical">
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:text="ADC0 (GPIO0)"
+                            android:textColor="@color/txt2" android:textSize="13sp" />
+                        <TextView android:id="@+id/tvAdcVal"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="-" android:textColor="@color/txt"
+                            android:textSize="13sp" android:textStyle="bold" android:fontFamily="monospace" />
+                        <TextView android:id="@+id/tvAdcPct"
+                            android:layout_width="40dp" android:layout_height="wrap_content"
+                            android:text="-" android:textColor="@color/txt2"
+                            android:textSize="11sp" android:gravity="end" />
+                    </LinearLayout>
+                    <FrameLayout android:layout_width="match_parent" android:layout_height="8dp"
+                        android:background="@color/bg3" android:layout_marginTop="4dp">
+                        <View android:id="@+id/adcBar" android:layout_width="0dp"
+                            android:layout_height="8dp" android:background="@color/acc" />
+                    </FrameLayout>
+                </LinearLayout>
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/brd"/>
+
+                <!-- Temp row -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:paddingVertical="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Temperatura"
+                        android:textColor="@color/txt2" android:textSize="13sp" />
+                    <TextView android:id="@+id/tvTempVal"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="-- °C" android:textColor="@color/txt"
+                        android:textSize="13sp" android:textStyle="bold" />
+                </LinearLayout>
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/brd"/>
+
+                <!-- Hum row -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:paddingVertical="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Humedad"
+                        android:textColor="@color/txt2" android:textSize="13sp" />
+                    <TextView android:id="@+id/tvHumVal"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="-- %" android:textColor="@color/txt"
+                        android:textSize="13sp" android:textStyle="bold" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Back button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnBack"
+                style="@style/FrankyBtn.Dark"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="⌂  Volver"
+                android:textSize="13sp" />
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

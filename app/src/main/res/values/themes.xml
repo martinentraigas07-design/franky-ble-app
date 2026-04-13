@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.FrankyIndustrial" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/acc</item>
+        <item name="colorPrimaryVariant">@color/acc2</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/acc2</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="android:colorBackground">@color/bg</item>
+        <item name="android:windowBackground">@color/bg</item>
+        <item name="android:statusBarColor">@color/bg2</item>
+        <item name="android:navigationBarColor">@color/bg</item>
+        <item name="android:textColorPrimary">@color/txt</item>
+        <item name="android:textColorSecondary">@color/txt2</item>
+    </style>
+
+    <!-- Franky Button Styles -->
+    <style name="FrankyBtn" parent="Widget.MaterialComponents.Button">
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.05</item>
+        <item name="cornerRadius">8dp</item>
+        <item name="android:minHeight">48dp</item>
+    </style>
+
+    <style name="FrankyBtn.Orange">
+        <item name="backgroundTint">@color/acc</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="FrankyBtn.Red">
+        <item name="backgroundTint">@color/danger</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="FrankyBtn.Green">
+        <item name="backgroundTint">@color/ok</item>
+        <item name="android:textColor">@color/black</item>
+    </style>
+
+    <style name="FrankyBtn.Blue">
+        <item name="backgroundTint">@color/info</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="FrankyBtn.Dark">
+        <item name="backgroundTint">@color/bg3</item>
+        <item name="android:textColor">@color/txt</item>
+        <item name="strokeColor">@color/brd</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+
+    <!-- Card style -->
+    <style name="FrankyCard" parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">@color/bg2</item>
+        <item name="strokeColor">@color/brd</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="cardCornerRadius">10dp</item>
+        <item name="contentPaddingLeft">14dp</item>
+        <item name="contentPaddingTop">14dp</item>
+        <item name="contentPaddingRight">14dp</item>
+        <item name="contentPaddingBottom">14dp</item>
+    </style>
+</resources>
