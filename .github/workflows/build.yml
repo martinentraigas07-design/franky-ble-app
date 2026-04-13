@@ -18,11 +18,13 @@ jobs:
 
       - uses: android-actions/setup-android@v3
 
-      - name: Build APK
+      - name: Install Gradle 8
         run: |
-          wget https://services.gradle.org/distributions/gradle-6.5-bin.zip
-          unzip gradle-6.5-bin.zip
-          gradle-6.5/bin/gradle assembleDebug
+          wget https://services.gradle.org/distributions/gradle-8.2-bin.zip
+          unzip gradle-8.2-bin.zip
+
+      - name: Build APK
+        run: gradle-8.2/bin/gradle assembleDebug
 
       - uses: actions/upload-artifact@v4
         with:
