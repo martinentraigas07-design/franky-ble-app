@@ -16,10 +16,8 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Install Gradle
-        run: |
-          sudo apt update
-          sudo apt install -y gradle
+     - name: Build APK
+  run: ./gradlew assembleDebug
 
       - name: Build APK
         run: gradle assembleDebug
