@@ -21,12 +21,12 @@ jobs:
 
       - name: Download Gradle
         run: |
-          curl -L https://services.gradle.org/distributions/gradle-6.5-bin.zip -o gradle.zip
+          curl -L https://services.gradle.org/distributions/gradle-7.5-bin.zip -o gradle.zip
           unzip gradle.zip
 
       - name: Build APK
         run: |
-          ./gradle-6.5/bin/gradle assembleDebug
+          ./gradle-7.5/bin/gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
