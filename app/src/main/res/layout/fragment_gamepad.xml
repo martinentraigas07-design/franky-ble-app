@@ -1,0 +1,31 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:background="#121212"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <Button android:id="@+id/btnUp"
+        android:text="UP"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <Button android:id="@+id/btnDown"
+        android:text="DOWN"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <Button android:id="@+id/btnLeft"
+        android:text="LEFT"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <Button android:id="@+id/btnRight"
+        android:text="RIGHT"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <com.franky.robot.ui.components.JoystickView
+        android:id="@+id/joystickView"
+        android:layout_width="200dp"
+        android:layout_height="200dp"/>
+</LinearLayout>
