@@ -25,10 +25,10 @@ jobs:
           unzip gradle.zip
 
       - name: Build APK
-  run: |
-    export JAVA_OPTS="--add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED"
-    ./gradle-7.5/bin/gradle assembleDebug
-    
+        run: |
+          export JAVA_OPTS="--add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED"
+          ./gradle-7.5/bin/gradle assembleDebug
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
