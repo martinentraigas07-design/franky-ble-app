@@ -12,6 +12,7 @@ import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.core.content.ContextCompat
@@ -20,6 +21,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.webkit.WebViewAssetLoader
+import androidx.webkit.WebViewAssetLoader.AssetsPathHandler
 import com.franky.robot.MainActivity
 import com.franky.robot.R
 import com.franky.robot.databinding.FragmentBlocklyBinding
@@ -31,6 +34,10 @@ class BlocklyFragment : Fragment() {
 
     companion object {
         private const val TAG = "BlocklyFragment"
+        // The https base URL used by WebViewAssetLoader
+        // All asset URLs become: https://appassets.androidplatform.net/assets/blockly/xxx
+        private const val ASSET_HOST = "appassets.androidplatform.net"
+        private const val PAGE_URL   = "https://$ASSET_HOST/assets/blockly/index.html"
     }
 
     private var _b: FragmentBlocklyBinding? = null
@@ -39,7 +46,20 @@ class BlocklyFragment : Fragment() {
 
     private val sentLog = StringBuilder("// Sin instrucciones enviadas")
 
+    // ── WebViewAssetLoader — serves assets/blockly/* as https:// ──────────
+    // This is the CORRECT modern way to load local files in WebView.
+    // file:// + allowFileAccessFromFileURLs is deprecated and broken on API 30+.
+    private lateinit var assetLoader: WebViewAssetLoader
+
     // ── Lifecycle ──────────────────────────────────────────────────────────
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        assetLoader = WebViewAssetLoader.Builder()
+            .setDomain(ASSET_HOST)
+            .addPathHandler("/assets/", AssetsPathHandler(requireContext()))
+            .build()
+    }
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreateView(
@@ -62,7 +82,7 @@ class BlocklyFragment : Fragment() {
 
     private fun configureToolbar() {
         b.toolbar.tbSubtitle.text = "Programación con Bloques"
-        b.toolbar.tbBadge.text = "EDITOR"
+        b.toolbar.tbBadge.text    = "EDITOR"
     }
 
     // ── Tabs ───────────────────────────────────────────────────────────────
@@ -93,80 +113,82 @@ class BlocklyFragment : Fragment() {
             ctx, if (editorActive) R.color.txt2 else R.color.white))
     }
 
-    // ── WebView — all required settings for file:// + Blockly ─────────────
+    // ── WebView ────────────────────────────────────────────────────────────
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun setupWebView() {
-        WebView.setWebContentsDebuggingEnabled(true) // enable Chrome devtools during dev
+        WebView.setWebContentsDebuggingEnabled(true)
 
         b.webView.apply {
             setBackgroundColor(Color.parseColor("#1A1A1A"))
 
             settings.apply {
-                javaScriptEnabled           = true
-                domStorageEnabled           = true
-                allowFileAccess             = true
-                // Required for file:// to load other file:// scripts
-                @Suppress("DEPRECATION")
-                allowFileAccessFromFileURLs  = true
-                @Suppress("DEPRECATION")
-                allowUniversalAccessFromFileURLs = true
-                // Avoid blocking mixed content on file:// pages
-                @Suppress("DEPRECATION")
-                mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
-                // Performance
-                setRenderPriority(android.webkit.WebSettings.RenderPriority.HIGH)
-                cacheMode = android.webkit.WebSettings.LOAD_DEFAULT
+                javaScriptEnabled = true
+                domStorageEnabled = true
+                allowFileAccess   = true
+                // No need for deprecated allowFileAccessFromFileURLs —
+                // WebViewAssetLoader serves everything as https://, so
+                // same-origin policy is satisfied automatically.
             }
 
             webViewClient = object : WebViewClient() {
+
+                // ── Intercept every request and serve local assets ──────
+                override fun shouldInterceptRequest(
+                    view: WebView?,
+                    request: WebResourceRequest?
+                ): WebResourceResponse? {
+                    // Let the asset loader handle any URL on our fake https host
+                    return request?.url?.let { assetLoader.shouldInterceptRequest(it) }
+                }
+
                 override fun onPageFinished(view: WebView?, url: String?) {
                     if (!isAdded) return
                     Log.d(TAG, "Page loaded: $url")
-                    // Tell Blockly to resize in case layout shifted
                     postDelayed({
                         if (isAdded) evaluateJavascript(
                             "if(window.resizeBlockly) resizeBlockly();", null)
-                    }, 300)
+                    }, 400)
                 }
 
                 override fun onReceivedError(
-                    view: WebView?, request: WebResourceRequest?, error: WebResourceError?
+                    view: WebView?,
+                    request: WebResourceRequest?,
+                    error: WebResourceError?
                 ) {
                     val url  = request?.url?.toString() ?: "?"
-                    val desc = error?.description?.toString() ?: "unknown"
-                    Log.e(TAG, "WebView error — $url : $desc")
-                    if (!isAdded) return
+                    val desc = error?.description?.toString() ?: "?"
+                    Log.e(TAG, "WebView error [$url]: $desc")
+                    if (!isAdded || request?.isForMainFrame == false) return
                     requireActivity().runOnUiThread {
-                        if (isAdded) {
-                            b.statusDot.setBackgroundColor(
-                                ContextCompat.getColor(requireContext(), R.color.danger))
-                            b.tvStatusText.text = "Error: $desc"
-                        }
+                        if (!isAdded) return@runOnUiThread
+                        b.statusDot.setBackgroundColor(
+                            ContextCompat.getColor(requireContext(), R.color.danger))
+                        b.tvStatusText.text = "Error cargando editor"
                     }
                 }
             }
 
-            // Forward ALL console messages to Logcat for easy debugging
+            // Forward console.log / error to Logcat
             webChromeClient = object : WebChromeClient() {
                 override fun onConsoleMessage(msg: ConsoleMessage?): Boolean {
-                    val level = msg?.messageLevel()?.name ?: "LOG"
-                    val text  = msg?.message() ?: ""
-                    val src   = msg?.sourceId()?.substringAfterLast('/') ?: ""
-                    val line  = msg?.lineNumber() ?: 0
-                    Log.d(TAG, "[$level] $src:$line — $text")
-                    return true // suppress default WebView console spam in production
+                    val lvl  = msg?.messageLevel()?.name ?: "LOG"
+                    val text = msg?.message() ?: ""
+                    val src  = msg?.sourceId()?.substringAfterLast('/') ?: ""
+                    Log.d(TAG, "[$lvl] $src:${msg?.lineNumber()} — $text")
+                    return true
                 }
             }
 
             addJavascriptInterface(AndroidBridge(), "AndroidInterface")
 
-            // CRITICAL: load with file:// so relative paths resolve correctly
-            loadUrl("file:///android_asset/blockly/index.html")
+            // Load via the https:// URL — asset loader intercepts and serves
+            // the file from assets/blockly/index.html
+            loadUrl(PAGE_URL)
         }
 
         b.tvStatusText.text = "Cargando editor Blockly…"
-        b.statusDot.setBackgroundColor(
+        if (isAdded) b.statusDot.setBackgroundColor(
             ContextCompat.getColor(requireContext(), R.color.warn))
     }
 
@@ -180,20 +202,18 @@ class BlocklyFragment : Fragment() {
                     ?.trim()
                     ?.removeSurrounding("\"")
                     ?.replace("\\\"", "\"")
-                    ?.replace("\\'", "'")
-                    ?.replace("\\n", "\n")
+                    ?.replace("\\'",  "'")
+                    ?.replace("\\n",  "\n")
                     ?.replace("\\\\", "\\")
                     ?: ""
-                Log.d(TAG, "XML length from Blockly: ${xml.length}")
-                when {
-                    xml.length < 30 -> showNotif("Workspace vacío — agregá bloques", "#FFA000")
-                    else            -> vm.sendXml(xml)
-                }
+                Log.d(TAG, "XML length: ${xml.length}")
+                if (xml.length < 30) showNotif("Workspace vacío — agregá bloques", "#FFA000")
+                else vm.sendXml(xml)
             }
         }
     }
 
-    // ── ViewModel event observer ───────────────────────────────────────────
+    // ── Events ─────────────────────────────────────────────────────────────
 
     private fun observeEvents() {
         viewLifecycleOwner.lifecycleScope.launch {
@@ -201,12 +221,12 @@ class BlocklyFragment : Fragment() {
                 vm.uiEvents.collect { event ->
                     when (event) {
                         is UiEvent.XmlSending -> {
-                            b.pbXml.visibility = View.VISIBLE
+                            b.pbXml.visibility     = View.VISIBLE
                             b.toolbar.tbBadge.text = "ENVIANDO"
                             b.tvStatusText.text    = "Enviando programa…"
                         }
                         is UiEvent.XmlSuccess -> {
-                            b.pbXml.visibility = View.GONE
+                            b.pbXml.visibility     = View.GONE
                             b.toolbar.tbBadge.text = "OK"
                             b.tvStatusText.text    = "Programa cargado ✓"
                             sentLog.clear()
@@ -214,7 +234,7 @@ class BlocklyFragment : Fragment() {
                             showNotif("¡Cargado en FRANKY!", "#00C853")
                         }
                         is UiEvent.XmlError -> {
-                            b.pbXml.visibility = View.GONE
+                            b.pbXml.visibility     = View.GONE
                             b.toolbar.tbBadge.text = "ERROR"
                             b.tvStatusText.text    = "Error al enviar"
                             showNotif("Error al enviar", "#E53935")
@@ -231,15 +251,15 @@ class BlocklyFragment : Fragment() {
     private fun showNotif(msg: String, color: String) {
         if (!isAdded) return
         b.webView.post {
-            b.webView.evaluateJavascript("showNotif('$msg','$color')", null)
+            b.webView.evaluateJavascript(
+                "if(window.showNotif) showNotif('$msg','$color');", null)
         }
     }
 
-    // ── JavaScript Bridge ──────────────────────────────────────────────────
+    // ── JS Bridge ──────────────────────────────────────────────────────────
 
     inner class AndroidBridge {
 
-        /** Called when Blockly finishes injecting (editor is ready) */
         @JavascriptInterface
         fun onEditorReady() {
             requireActivity().runOnUiThread {
@@ -251,18 +271,17 @@ class BlocklyFragment : Fragment() {
             }
         }
 
-        /** Called from enviarCodigo() in the HTML (button inside Blockly) */
         @JavascriptInterface
         fun enviar(xml: String) {
-            when {
-                xml.length < 30 -> requireActivity().runOnUiThread {
+            if (xml.length < 30) {
+                requireActivity().runOnUiThread {
                     if (isAdded) showNotif("Workspace vacío", "#FFA000")
                 }
-                else -> vm.sendXml(xml)
+            } else {
+                vm.sendXml(xml)
             }
         }
 
-        /** Block count update */
         @JavascriptInterface
         fun updateBlockCount(count: Int) {
             requireActivity().runOnUiThread {
@@ -270,26 +289,23 @@ class BlocklyFragment : Fragment() {
             }
         }
 
-        /** Error logging from JavaScript */
         @JavascriptInterface
         fun logError(msg: String) {
-            Log.e(TAG, "JS Error: $msg")
+            Log.e(TAG, "JS: $msg")
             requireActivity().runOnUiThread {
                 if (!isAdded) return@runOnUiThread
                 b.statusDot.setBackgroundColor(
                     ContextCompat.getColor(requireContext(), R.color.danger))
-                b.tvStatusText.text = "Error JS: ${msg.take(60)}"
+                b.tvStatusText.text = msg.take(80)
             }
         }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        b.webView.apply {
-            stopLoading()
-            clearHistory()
-            destroy()
-        }
+        b.webView.stopLoading()
+        b.webView.clearHistory()
+        b.webView.destroy()
         _b = null
     }
 }

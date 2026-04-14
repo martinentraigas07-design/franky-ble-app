@@ -7,27 +7,25 @@
                maximum-scale=1.0, user-scalable=no">
 <title>Franky 4.0 — Bloques</title>
 <style>
-/* ── Paleta idéntica al servidor web SPIFFS ─────────────────────────── */
+/* ── Paleta idéntica al servidor web SPIFFS ───────────────────────────── */
 :root {
   --bg:#0d0d0d; --bg2:#1a1a1a; --bg3:#222; --bg4:#2a2a2a;
   --acc:#e05a00; --acc2:#ff7a1a; --ok:#00c853;
   --danger:#e53935; --warn:#ffa000;
   --txt:#e0e0e0; --txt2:#999; --brd:#333;
 }
-*  { box-sizing:border-box; margin:0; padding:0; }
+* { box-sizing:border-box; margin:0; padding:0; }
 html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); }
 
-/* Blockly canvas fills the whole view */
 #blocklyDiv {
   position:absolute;
   top:0; left:0; right:0; bottom:0;
 }
 
-/* Toast notification */
+/* Toast */
 #notif {
   position:fixed;
-  top:14px; left:50%;
-  transform:translateX(-50%);
+  top:14px; left:50%; transform:translateX(-50%);
   padding:10px 22px;
   color:#fff;
   border-radius:8px;
@@ -38,9 +36,11 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); }
   pointer-events:none;
   white-space:nowrap;
   max-width:90vw;
+  text-overflow:ellipsis;
+  overflow:hidden;
 }
 
-/* ── Blockly dark-theme overrides (mirrors bloques.html) ─────────────── */
+/* ── Blockly dark-theme overrides ─────────────────────────────────────── */
 .blocklyTreeLabel {
   color:#fff !important;
   font:600 13px/1 'Segoe UI',Arial,sans-serif !important;
@@ -56,217 +56,213 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); }
 .blocklyScrollbarBackground{ fill:#1a1a1a !important; }
 .blocklyScrollbarHandle    { fill:#555 !important; }
 .blocklyMainBackground     { fill:#1a1a1a !important; }
+
+/* Loading indicator shown while JS files load */
+#loading {
+  position:fixed; top:0;left:0;right:0;bottom:0;
+  display:flex; align-items:center; justify-content:center;
+  flex-direction:column; gap:14px;
+  background:#0d0d0d; z-index:9000;
+  color:#e0e0e0; font:14px 'Segoe UI',sans-serif;
+}
+#loading-dot {
+  width:40px; height:40px; border-radius:50%;
+  border:4px solid #333; border-top-color:#e05a00;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
 </style>
 </head>
 <body>
+
+<!-- Loading overlay — removed by JS once Blockly injects -->
+<div id="loading">
+  <div id="loading-dot"></div>
+  <span>Cargando editor…</span>
+</div>
 
 <div id="blocklyDiv"></div>
 <div id="notif"></div>
 
 <!--
-  CRITICAL: All paths MUST be relative (no leading slash).
-  file:///android_asset/blockly/ is the base URL.
-  The files must exist at:
-    app/src/main/assets/blockly/bly_core_1.js  … bly_core_5.js
-    app/src/main/assets/blockly/bly_blocks.js
-    app/src/main/assets/blockly/bly_js.js
-    app/src/main/assets/blockly/bly_msg.js
--->
-<script>
-// ── Android interface detection helper ─────────────────────────────────
-var IS_ANDROID = (typeof AndroidInterface !== 'undefined');
-function log(msg) {
-  if (IS_ANDROID && AndroidInterface.logError) {
-    AndroidInterface.logError('[Blockly] ' + msg);
-  }
-}
-</script>
+  IMPORTANT: All script paths are RELATIVE.
+  When served via WebViewAssetLoader the base URL is:
+    https://appassets.androidplatform.net/assets/blockly/
+  So "bly_core_1.js" resolves correctly to that path.
 
-<script src="bly_core_1.js"   onerror="log('FAIL: bly_core_1.js')"></script>
-<script src="bly_core_2.js"   onerror="log('FAIL: bly_core_2.js')"></script>
-<script src="bly_core_3.js"   onerror="log('FAIL: bly_core_3.js')"></script>
-<script src="bly_core_4.js"   onerror="log('FAIL: bly_core_4.js')"></script>
-<script src="bly_core_5.js"   onerror="log('FAIL: bly_core_5.js')"></script>
-<script src="bly_blocks.js"   onerror="log('FAIL: bly_blocks.js')"></script>
-<script src="bly_js.js"       onerror="log('FAIL: bly_js.js')"></script>
-<script src="bly_msg.js"      onerror="log('FAIL: bly_msg.js')"></script>
+  Files required in app/src/main/assets/blockly/:
+    bly_core_1.js  bly_core_2.js  bly_core_3.js  bly_core_4.js  bly_core_5.js
+    bly_blocks.js  bly_js.js  bly_msg.js
+-->
+
+<!-- Load Blockly core (split into 5 parts for the SPIFFS size limit) -->
+<script src="bly_core_1.js"></script>
+<script src="bly_core_2.js"></script>
+<script src="bly_core_3.js"></script>
+<script src="bly_core_4.js"></script>
+<script src="bly_core_5.js"></script>
+<!-- Blockly standard block definitions -->
+<script src="bly_blocks.js"></script>
+<!-- JavaScript code generator -->
+<script src="bly_js.js"></script>
+<!-- Spanish messages -->
+<script src="bly_msg.js"></script>
 
 <script>
 (function () {
 'use strict';
 
-// ── 1. Check Blockly loaded ─────────────────────────────────────────────
-if (typeof Blockly === 'undefined') {
-  document.body.innerHTML =
-    '<div style="padding:20px;color:#e53935;font:14px sans-serif">' +
-    '<b>ERROR: Blockly no cargó.</b><br><br>' +
-    'Copiá los archivos <code>bly_*.js</code> del proyecto SPIFFS ESP32 a:<br>' +
-    '<code>app/src/main/assets/blockly/</code>' +
-    '</div>';
-  if (typeof AndroidInterface !== 'undefined') {
-    AndroidInterface.logError('Blockly undefined — JS files missing from assets/blockly/');
+/* ── Android bridge helper ────────────────────────────────────────────── */
+function toAndroid(method, arg) {
+  if (typeof AndroidInterface !== 'undefined' &&
+      typeof AndroidInterface[method] === 'function') {
+    AndroidInterface[method](arg || '');
   }
+}
+
+/* ── Hide loading overlay ─────────────────────────────────────────────── */
+function hideLoading() {
+  var el = document.getElementById('loading');
+  if (el) el.style.display = 'none';
+}
+
+/* ── Guard: Blockly must be defined ──────────────────────────────────── */
+if (typeof Blockly === 'undefined') {
+  hideLoading();
+  document.getElementById('blocklyDiv').innerHTML =
+    '<div style="padding:24px;color:#e53935;font:14px/1.6 monospace">' +
+    '<b>ERROR: Blockly no cargó.</b><br><br>' +
+    'Archivos requeridos en<br>' +
+    '<code>app/src/main/assets/blockly/</code>:<br><br>' +
+    '• bly_core_1.js … bly_core_5.js<br>' +
+    '• bly_blocks.js<br>' +
+    '• bly_js.js<br>' +
+    '• bly_msg.js' +
+    '</div>';
+  toAndroid('logError', 'Blockly undefined – bly_*.js not found');
   return;
 }
 
-// ── 2. Custom FRANKY blocks (mirrors bloques.html) ─────────────────────
+/* ── 1. Custom FRANKY blocks ──────────────────────────────────────────── */
 Blockly.defineBlocksWithJsonArray([
-  {
-    type:'franky_adelante',
+  { type:'franky_adelante',
     message0:'🤖 Avanzar',
-    previousStatement:null, nextStatement:null,
-    colour:160, tooltip:'FRANKY avanza hacia adelante'
-  },
-  {
-    type:'franky_atras',
+    previousStatement:null, nextStatement:null, colour:160,
+    tooltip:'FRANKY avanza hacia adelante' },
+  { type:'franky_atras',
     message0:'🤖 Retroceder',
-    previousStatement:null, nextStatement:null,
-    colour:160, tooltip:'FRANKY retrocede'
-  },
-  {
-    type:'franky_izquierda',
+    previousStatement:null, nextStatement:null, colour:160,
+    tooltip:'FRANKY retrocede' },
+  { type:'franky_izquierda',
     message0:'🤖 Girar izquierda',
-    previousStatement:null, nextStatement:null,
-    colour:160, tooltip:'Gira a la izquierda'
-  },
-  {
-    type:'franky_derecha',
+    previousStatement:null, nextStatement:null, colour:160 },
+  { type:'franky_derecha',
     message0:'🤖 Girar derecha',
-    previousStatement:null, nextStatement:null,
-    colour:160, tooltip:'Gira a la derecha'
-  },
-  {
-    type:'franky_stop',
+    previousStatement:null, nextStatement:null, colour:160 },
+  { type:'franky_stop',
     message0:'⬛ Detener FRANKY',
-    previousStatement:null, nextStatement:null,
-    colour:0, tooltip:'Detiene todos los motores'
-  },
-  {
-    type:'franky_velocidad',
+    previousStatement:null, nextStatement:null, colour:0,
+    tooltip:'Detiene todos los motores' },
+  { type:'franky_velocidad',
     message0:'⚡ Velocidad %1',
-    args0:[{type:'field_number', name:'SPD', value:200, min:0, max:255}],
-    previousStatement:null, nextStatement:null,
-    colour:160, tooltip:'Ajusta la velocidad (0–255)'
-  },
-  {
-    type:'franky_leer_adc',
+    args0:[{type:'field_number',name:'SPD',value:200,min:0,max:255}],
+    previousStatement:null, nextStatement:null, colour:160,
+    tooltip:'Ajusta la velocidad (0–255)' },
+  { type:'franky_leer_adc',
     message0:'📊 Leer ADC0',
     output:'Number', colour:210,
-    tooltip:'Lee el valor del sensor analógico ADC0'
-  },
-  {
-    type:'franky_leer_temp',
+    tooltip:'Lee el sensor analógico ADC0' },
+  { type:'franky_leer_temp',
     message0:'🌡 Temperatura (°C)',
-    output:'Number', colour:210,
-    tooltip:'Lee la temperatura del sensor DHT22'
-  },
-  {
-    type:'franky_leer_hum',
+    output:'Number', colour:210 },
+  { type:'franky_leer_hum',
     message0:'💧 Humedad (%)',
-    output:'Number', colour:210,
-    tooltip:'Lee la humedad del sensor DHT22'
-  },
-  {
-    type:'franky_esperar',
+    output:'Number', colour:210 },
+  { type:'franky_esperar',
     message0:'⏱ Esperar %1 ms',
-    args0:[{type:'field_number', name:'MS', value:500, min:0}],
-    previousStatement:null, nextStatement:null,
-    colour:65, tooltip:'Espera N milisegundos'
-  }
+    args0:[{type:'field_number',name:'MS',value:500,min:0}],
+    previousStatement:null, nextStatement:null, colour:65,
+    tooltip:'Espera N milisegundos' }
 ]);
 
-// ── 3. Code generators (JavaScript — sent as XML to Android) ──────────
-// The XML representation is what Android reads; generators are optional
-// but allow previewing the logic in a future "Código" tab.
+/* Optional JS generators for future code preview */
 if (Blockly.JavaScript) {
-  Blockly.JavaScript['franky_adelante']  = function() { return "franky.send('F');\n"; };
-  Blockly.JavaScript['franky_atras']     = function() { return "franky.send('B');\n"; };
-  Blockly.JavaScript['franky_izquierda'] = function() { return "franky.send('L');\n"; };
-  Blockly.JavaScript['franky_derecha']   = function() { return "franky.send('R');\n"; };
-  Blockly.JavaScript['franky_stop']      = function() { return "franky.send('S');\n"; };
+  Blockly.JavaScript['franky_adelante']  = function() { return "robot.send('F');\n"; };
+  Blockly.JavaScript['franky_atras']     = function() { return "robot.send('B');\n"; };
+  Blockly.JavaScript['franky_izquierda'] = function() { return "robot.send('L');\n"; };
+  Blockly.JavaScript['franky_derecha']   = function() { return "robot.send('R');\n"; };
+  Blockly.JavaScript['franky_stop']      = function() { return "robot.send('S');\n"; };
   Blockly.JavaScript['franky_velocidad'] = function(b) {
-    return "franky.send('SPD:" + b.getFieldValue('SPD') + "');\n";
+    return "robot.send('SPD:" + b.getFieldValue('SPD') + "');\n";
   };
-  Blockly.JavaScript['franky_leer_adc']  = function() { return ["franky.adc0()", Blockly.JavaScript.ORDER_FUNCTION_CALL]; };
-  Blockly.JavaScript['franky_leer_temp'] = function() { return ["franky.temp()",  Blockly.JavaScript.ORDER_FUNCTION_CALL]; };
-  Blockly.JavaScript['franky_leer_hum']  = function() { return ["franky.hum()",   Blockly.JavaScript.ORDER_FUNCTION_CALL]; };
+  Blockly.JavaScript['franky_leer_adc']  = function() {
+    return ["robot.adc0()", Blockly.JavaScript.ORDER_FUNCTION_CALL];
+  };
+  Blockly.JavaScript['franky_leer_temp'] = function() {
+    return ["robot.temp()", Blockly.JavaScript.ORDER_FUNCTION_CALL];
+  };
+  Blockly.JavaScript['franky_leer_hum']  = function() {
+    return ["robot.hum()", Blockly.JavaScript.ORDER_FUNCTION_CALL];
+  };
   Blockly.JavaScript['franky_esperar']   = function(b) {
-    return "franky.wait(" + b.getFieldValue('MS') + ");\n";
+    return "robot.wait(" + b.getFieldValue('MS') + ");\n";
   };
 }
 
-// ── 4. Toolbox definition ──────────────────────────────────────────────
+/* ── 2. Toolbox ───────────────────────────────────────────────────────── */
 var TOOLBOX = {
   kind:'categoryToolbox',
   contents:[
-    {
-      kind:'category', name:'Movimiento', colour:160,
-      contents:[
-        {kind:'block', type:'franky_adelante'},
-        {kind:'block', type:'franky_atras'},
-        {kind:'block', type:'franky_izquierda'},
-        {kind:'block', type:'franky_derecha'},
-        {kind:'block', type:'franky_stop'},
-        {kind:'block', type:'franky_velocidad'}
-      ]
-    },
-    {
-      kind:'category', name:'Sensores', colour:210,
-      contents:[
-        {kind:'block', type:'franky_leer_adc'},
-        {kind:'block', type:'franky_leer_temp'},
-        {kind:'block', type:'franky_leer_hum'}
-      ]
-    },
-    {
-      kind:'category', name:'Control', colour:120,
-      contents:[
-        {kind:'block', type:'controls_repeat_ext'},
-        {kind:'block', type:'controls_whileUntil'},
-        {kind:'block', type:'controls_if'},
-        {kind:'block', type:'controls_ifelse'}
-      ]
-    },
-    {
-      kind:'category', name:'Lógica', colour:210,
-      contents:[
-        {kind:'block', type:'logic_compare'},
-        {kind:'block', type:'logic_operation'},
-        {kind:'block', type:'logic_negate'},
-        {kind:'block', type:'logic_boolean'}
-      ]
-    },
-    {
-      kind:'category', name:'Matemáticas', colour:230,
-      contents:[
-        {kind:'block', type:'math_number'},
-        {kind:'block', type:'math_arithmetic'},
-        {kind:'block', type:'math_single'}
-      ]
-    },
-    {
-      kind:'category', name:'Tiempo', colour:65,
-      contents:[
-        {kind:'block', type:'franky_esperar'}
-      ]
-    },
+    { kind:'category', name:'Movimiento', colour:160, contents:[
+      {kind:'block',type:'franky_adelante'},
+      {kind:'block',type:'franky_atras'},
+      {kind:'block',type:'franky_izquierda'},
+      {kind:'block',type:'franky_derecha'},
+      {kind:'block',type:'franky_stop'},
+      {kind:'block',type:'franky_velocidad'}
+    ]},
+    { kind:'category', name:'Sensores', colour:210, contents:[
+      {kind:'block',type:'franky_leer_adc'},
+      {kind:'block',type:'franky_leer_temp'},
+      {kind:'block',type:'franky_leer_hum'}
+    ]},
+    { kind:'category', name:'Control', colour:120, contents:[
+      {kind:'block',type:'controls_repeat_ext'},
+      {kind:'block',type:'controls_whileUntil'},
+      {kind:'block',type:'controls_if'},
+      {kind:'block',type:'controls_ifelse'}
+    ]},
+    { kind:'category', name:'Lógica', colour:210, contents:[
+      {kind:'block',type:'logic_compare'},
+      {kind:'block',type:'logic_operation'},
+      {kind:'block',type:'logic_negate'},
+      {kind:'block',type:'logic_boolean'}
+    ]},
+    { kind:'category', name:'Matemáticas', colour:230, contents:[
+      {kind:'block',type:'math_number'},
+      {kind:'block',type:'math_arithmetic'},
+      {kind:'block',type:'math_single'}
+    ]},
+    { kind:'category', name:'Tiempo', colour:65, contents:[
+      {kind:'block',type:'franky_esperar'}
+    ]},
     {kind:'sep'},
-    {kind:'category', name:'Variables', colour:330, custom:'VARIABLE'},
-    {kind:'category', name:'Funciones', colour:290, custom:'PROCEDURE'}
+    {kind:'category', name:'Variables',  colour:330, custom:'VARIABLE'},
+    {kind:'category', name:'Funciones',  colour:290, custom:'PROCEDURE'}
   ]
 };
 
-// ── 5. Inject workspace ────────────────────────────────────────────────
+/* ── 3. Inject workspace ──────────────────────────────────────────────── */
 var workspace;
 try {
   workspace = Blockly.inject('blocklyDiv', {
-    toolbox: TOOLBOX,
-    grid:     {spacing:20, length:3, colour:'#333', snap:true},
-    trashcan: true,
+    toolbox:    TOOLBOX,
+    grid:       {spacing:20, length:3, colour:'#333', snap:true},
+    trashcan:   true,
     scrollbars: true,
     zoom: {
       controls:true, wheel:true,
-      startScale:0.85, maxScale:3, minScale:0.3, scaleSpeed:1.2
+      startScale:0.9, maxScale:3, minScale:0.3, scaleSpeed:1.2
     },
     theme: {
       base: Blockly.Themes ? Blockly.Themes.Classic : undefined,
@@ -286,46 +282,47 @@ try {
     }
   });
 } catch(e) {
-  log('inject failed: ' + e.message);
+  hideLoading();
+  toAndroid('logError', 'Blockly.inject failed: ' + e.message);
   return;
 }
 
-// ── 6. Notify Android when block count changes ─────────────────────────
+/* ── 4. Hide loading once workspace is ready ─────────────────────────── */
+hideLoading();
+
+/* ── 5. Block count → Android ────────────────────────────────────────── */
 workspace.addChangeListener(function() {
-  var n = workspace.getAllBlocks(false).length;
-  if (typeof AndroidInterface !== 'undefined') {
-    AndroidInterface.updateBlockCount(n);
-  }
+  toAndroid('updateBlockCount', workspace.getAllBlocks(false).length);
 });
 
-// ── 7. Resize workspace when Android calls resizeBlockly() ────────────
+/* ── 6. Resize on layout change ──────────────────────────────────────── */
 window.resizeBlockly = function() {
   if (workspace) Blockly.svgResize(workspace);
 };
+window.addEventListener('resize', function() {
+  if (workspace) Blockly.svgResize(workspace);
+});
 
-// ── 8. Public API ──────────────────────────────────────────────────────
+/* ── 7. Public API ────────────────────────────────────────────────────── */
 
-/** Called by Android evaluateJavascript("getXmlForAndroid()") */
+/** Called by Android: evaluateJavascript("getXmlForAndroid()") */
 window.getXmlForAndroid = function() {
   if (!workspace) return '';
   try {
     var dom = Blockly.Xml.workspaceToDom(workspace);
     return new XMLSerializer().serializeToString(dom);
   } catch(e) {
-    log('getXmlForAndroid error: ' + e.message);
+    toAndroid('logError', 'getXmlForAndroid: ' + e.message);
     return '';
   }
 };
 
-/** Called by CARGAR button (alternative entry point) */
+/** Called from Kotlin Android bridge button (fallback) */
 window.enviarCodigo = function() {
-  var xml = window.getXmlForAndroid();
-  if (typeof AndroidInterface !== 'undefined') {
-    AndroidInterface.enviar(xml);
-  }
+  toAndroid('enviar', window.getXmlForAndroid());
 };
 
-/** Toast — called by Android via evaluateJavascript("showNotif(...)") */
+/** Toast shown from Android via evaluateJavascript */
 window.showNotif = function(msg, color) {
   var n = document.getElementById('notif');
   if (!n) return;
@@ -333,13 +330,11 @@ window.showNotif = function(msg, color) {
   n.style.backgroundColor = color || '#333';
   n.style.opacity = '1';
   clearTimeout(n._t);
-  n._t = setTimeout(function(){ n.style.opacity = '0'; }, 3000);
+  n._t = setTimeout(function() { n.style.opacity = '0'; }, 3000);
 };
 
-// Notify Android that editor is ready
-if (typeof AndroidInterface !== 'undefined') {
-  AndroidInterface.onEditorReady();
-}
+/* ── 8. Signal Android that editor is fully ready ────────────────────── */
+toAndroid('onEditorReady', '');
 
 })();
 </script>
