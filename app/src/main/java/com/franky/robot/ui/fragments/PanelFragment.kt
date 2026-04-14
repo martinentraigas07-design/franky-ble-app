@@ -245,9 +245,27 @@ class PanelFragment : Fragment() {
                     updateAdcRow(adc1, s.adc1)
 
                     // ── Digital pins ───────────────────────────────────
-                    fun dig(tv: TextView, statusTv: TextView?, pin: Int,
-                            busLabel: String?, busActive: Boolean) {
-                        val v = s.digitalPins[pin]
+fun dig(tv: TextView, statusTv: TextView?, pin: Int,
+        busLabel: String?, busActive: Boolean) {
+
+    val index = when (pin) {
+        6  -> 0
+        7  -> 1
+        9  -> 2
+        10 -> 3
+        else -> -1
+    }
+
+    val v = if (index >= 0 && index < s.digitalPins.size)
+        s.digitalPins[index]
+    else null
+
+    tv.text = v?.toString() ?: "-"
+
+    statusTv?.text = if (busLabel != null)
+        if (busActive) "$busLabel on" else "Libre"
+    else ""
+}
                         tv.text = v?.toString() ?: "-"
                         statusTv?.text = if (busLabel != null)
                             if (busActive) "$busLabel on" else "Libre"
