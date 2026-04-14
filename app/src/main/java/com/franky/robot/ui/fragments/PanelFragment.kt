@@ -236,67 +236,85 @@ adc1 = ItemAdcRowBinding.inflate(layoutInflater)
         }
     }
 
-    private fun observeSensors() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                vm.sensorData.collect { s ->
-                    // ── ADC ────────────────────────────────────────────
-                    updateAdcRow(adc0, s.adc0)
-                    updateAdcRow(adc1, s.adc1)
+// SOLO TE PEGO LAS PARTES CORREGIDAS (no todo el archivo)
 
-                    // ── Digital pins ───────────────────────────────────
-                    fun dig(tv: TextView, statusTv: TextView?, pin: Int,
-                            busLabel: String?, busActive: Boolean) {
-                        val v = s.digitalPins[pin]
-                        tv.text = v?.toString() ?: "-"
-                        statusTv?.text = if (busLabel != null)
-                            if (busActive) "$busLabel on" else "Libre"
-                        else ""
+private fun observeSensors() {
+    viewLifecycleOwner.lifecycleScope.launch {
+        repeatOnLifecycle(Lifecycle.State.STARTED) {
+            vm.sensorData.collect { s ->
+                // ── ADC ────────────────────────────────────────────
+                updateAdcRow(adc0, s.adc0)
+                updateAdcRow(adc1, s.adc1)
+
+                // ── Digital pins (FIX CRÍTICO) ─────────────────────
+                fun dig(tv: TextView, statusTv: TextView?, pin: Int,
+                        busLabel: String?, busActive: Boolean) {
+
+                    val index = when (pin) {
+                        6  -> 0
+                        7  -> 1
+                        9  -> 2
+                        10 -> 3
+                        else -> -1
                     }
-                    dig(b.tvDig9,  null,      9,  null,  false)
-                    dig(b.tvDig6,  b.tvDig6St, 6, "I2C", s.i2cEnabled)
-                    dig(b.tvDig7,  b.tvDig7St, 7, "I2C", s.i2cEnabled)
-                    dig(b.tvDig10, b.tvDig10St, 10, "SPI", s.spiEnabled)
 
-                    // ── DHT22 ──────────────────────────────────────────
-                    b.tvDhtTemp.text = if (s.temp == 0f) "-- °C" else "%.1f °C".format(s.temp)
-                    b.tvDhtHum.text  = if (s.hum  == 0f) "-- %"  else "%.1f %%".format(s.hum)
+                    val v = if (index >= 0 && index < s.digitalPins.size)
+                        s.digitalPins[index]
+                    else null
 
-                    // ── Sonar ──────────────────────────────────────────
-                    if (s.sonarCm >= 0) {
-                        b.tvSonarVal.text = "${s.sonarCm} cm"
-                        val pct = (s.sonarCm.coerceIn(0, 400) * 100f / 400f).toInt()
-                        b.barSonar.post {
-                            val pw = (b.barSonar.parent as? View)?.width ?: 0
-                            if (pw > 0) {
-                                val lp = b.barSonar.layoutParams
-                                lp.width = (pw * pct / 100f).toInt()
-                                b.barSonar.layoutParams = lp
-                            }
+                    tv.text = v?.toString() ?: "-"
+
+                    statusTv?.text = if (busLabel != null)
+                        if (busActive) "$busLabel on" else "Libre"
+                    else ""
+                }
+
+                dig(b.tvDig9,  null,       9,  null,  false)
+                dig(b.tvDig6,  b.tvDig6St, 6,  "I2C", s.i2cEnabled)
+                dig(b.tvDig7,  b.tvDig7St, 7,  "I2C", s.i2cEnabled)
+                dig(b.tvDig10, b.tvDig10St, 10, "SPI", s.spiEnabled)
+
+                // ── DHT22 (FIX ANTI-CRASH) ─────────────────────────
+                b.tvDhtTemp?.text = if (s.temp == 0f) "-- °C" else "%.1f °C".format(s.temp)
+                b.tvDhtHum?.text  = if (s.hum  == 0f) "-- %"  else "%.1f %%".format(s.hum)
+
+                // ── Sonar ──────────────────────────────────────────
+                if (s.sonarCm >= 0) {
+                    b.tvSonarVal.text = "${s.sonarCm} cm"
+                    val pct = (s.sonarCm.coerceIn(0, 400) * 100f / 400f).toInt()
+                    b.barSonar.post {
+                        val pw = (b.barSonar.parent as? View)?.width ?: 0
+                        if (pw > 0) {
+                            val lp = b.barSonar.layoutParams
+                            lp.width = (pw * pct / 100f).toInt()
+                            b.barSonar.layoutParams = lp
                         }
                     }
+                }
 
-                    // ── Buses ──────────────────────────────────────────
-                    updateBusChip(b.tvI2cChip, s.i2cEnabled)
-                    updateBusChip(b.tvSpiChip, s.spiEnabled)
-                    // Sync switches without firing listener (by removing + re-adding)
-                    b.switchI2c.setOnCheckedChangeListener(null)
-                    b.switchSpi.setOnCheckedChangeListener(null)
-                    b.switchI2c.isChecked = s.i2cEnabled
-                    b.switchSpi.isChecked = s.spiEnabled
-                    b.switchI2c.setOnCheckedChangeListener { _, on -> vm.setI2c(on) }
-                    b.switchSpi.setOnCheckedChangeListener { _, on -> vm.setSpi(on) }
+                // ── Buses ──────────────────────────────────────────
+                updateBusChip(b.tvI2cChip, s.i2cEnabled)
+                updateBusChip(b.tvSpiChip, s.spiEnabled)
 
-                    // ── I2C devices ────────────────────────────────────
-                    if (s.i2cDevices.isNotEmpty()) {
-                        b.tvI2cDevices.visibility = View.VISIBLE
-                        b.tvI2cDevices.text = if (s.i2cDevices.isEmpty()) "Sin dispositivos"
-                        else "Encontrados: ${s.i2cDevices.joinToString(", ")}"
-                    }
+                b.switchI2c.setOnCheckedChangeListener(null)
+                b.switchSpi.setOnCheckedChangeListener(null)
+
+                b.switchI2c.isChecked = s.i2cEnabled
+                b.switchSpi.isChecked = s.spiEnabled
+
+                b.switchI2c.setOnCheckedChangeListener { _, on -> vm.setI2c(on) }
+                b.switchSpi.setOnCheckedChangeListener { _, on -> vm.setSpi(on) }
+
+                // ── I2C devices ────────────────────────────────────
+                if (s.i2cDevices.isNotEmpty()) {
+                    b.tvI2cDevices.visibility = View.VISIBLE
+                    b.tvI2cDevices.text =
+                        "Encontrados: ${s.i2cDevices.joinToString(", ")}"
                 }
             }
         }
     }
+}
 
     // ── Helpers ───────────────────────────────────────────────────────────
 
