@@ -14,13 +14,14 @@ enum class ConnectionStatus { DISCONNECTED, SCANNING, CONNECTING, CONNECTED }
 data class SensorData(
     val adc0: Int = 0,
     val adc1: Int = 0,
-    val btn: Int = 1,
-    val temp: Float = 0f,
-    val hum: Float = 0f,
-    val led: Int = 0,
-    val sonarCm: Int = 0,
-    val digitalPins: Map<Int, Int> = emptyMap(),
+    val btn: Int = 0,
+    val ledPct: Int = 0, // 🔥 usar este nombre
+    val sonarCm: Int = -1,
+    val digitalPins: List<Int> = listOf(0,0,0,0),
     val i2cEnabled: Boolean = false,
     val spiEnabled: Boolean = false,
-    val i2cDevices: List<String> = emptyList()
+    val i2cDevices: List<String> = emptyList(),
+
+    val temp: Float = 0f,
+    val hum: Float = 0f
 )
