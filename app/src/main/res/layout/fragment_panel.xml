@@ -5,29 +5,12 @@
     android:background="@color/bg"
     android:orientation="vertical">
 
-    <!-- Toolbar -->
-    <LinearLayout
+    <include
+        layout="@layout/view_toolbar"
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/bg_toolbar"
-        android:orientation="horizontal"
-        android:paddingStart="14dp" android:paddingEnd="14dp"
-        android:paddingTop="10dp" android:paddingBottom="10dp"
-        android:gravity="center_vertical">
+        android:layout_height="wrap_content" />
 
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-            android:layout_weight="1" android:orientation="vertical">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="FRANKY 4.0" android:textColor="@color/txt"
-                android:textSize="17sp" android:textStyle="bold" android:letterSpacing="0.05" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Panel Industrial" android:textColor="@color/txt2" android:textSize="11sp" />
-        </LinearLayout>
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:background="@drawable/bg_badge" android:paddingStart="10dp" android:paddingEnd="10dp"
-            android:paddingTop="3dp" android:paddingBottom="3dp" android:text="PANEL"
-            android:textColor="@color/white" android:textSize="11sp" android:textStyle="bold" />
-    </LinearLayout>
 
     <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"

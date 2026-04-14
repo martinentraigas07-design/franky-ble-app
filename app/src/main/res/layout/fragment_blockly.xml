@@ -6,46 +6,26 @@
     android:orientation="vertical">
 
     <!-- Toolbar -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/bg_toolbar"
-        android:orientation="horizontal"
-        android:paddingStart="14dp" android:paddingEnd="14dp"
-        android:paddingTop="10dp" android:paddingBottom="10dp"
-        android:gravity="center_vertical">
+    <include layout="@layout/view_toolbar" android:id="@+id/toolbar" />
 
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-            android:layout_weight="1" android:orientation="vertical">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="FRANKY 4.0" android:textColor="@color/txt"
-                android:textSize="17sp" android:textStyle="bold" android:letterSpacing="0.05" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Programación con Bloques" android:textColor="@color/txt2" android:textSize="11sp" />
-        </LinearLayout>
-        <TextView android:id="@+id/tvBadge"
-            android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:background="@drawable/bg_badge" android:paddingStart="10dp" android:paddingEnd="10dp"
-            android:paddingTop="3dp" android:paddingBottom="3dp" android:text="EDITOR"
-            android:textColor="@color/white" android:textSize="11sp" android:textStyle="bold" />
-    </LinearLayout>
-
-    <!-- Status bar — mirrors .prog-bar -->
+    <!-- Status bar -->
     <LinearLayout
         android:id="@+id/statusBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/bg3"
         android:orientation="horizontal"
-        android:paddingStart="14dp" android:paddingEnd="14dp"
-        android:paddingTop="10dp" android:paddingBottom="10dp"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
         android:gravity="center_vertical">
 
         <View
             android:id="@+id/statusDot"
-            android:layout_width="10dp"
-            android:layout_height="10dp"
-            android:background="#333333" />
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:background="@color/brd" />
 
         <TextView
             android:id="@+id/tvStatusText"
@@ -54,13 +34,14 @@
             android:layout_weight="1"
             android:text="Cargando editor..."
             android:textColor="@color/txt"
-            android:textSize="13sp"
-            android:layout_marginStart="10dp" />
+            android:textSize="12sp"
+            android:fontFamily="sans-serif"
+            android:layout_marginStart="8dp" />
 
         <ProgressBar
             android:id="@+id/pbXml"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
             android:indeterminateTint="@color/acc"
             android:visibility="gone" />
 
@@ -70,23 +51,26 @@
             android:layout_height="wrap_content"
             android:text="0 bloques"
             android:textColor="@color/txt2"
-            android:textSize="12sp"
+            android:textSize="11sp"
+            android:fontFamily="monospace"
             android:layout_marginStart="8dp" />
     </LinearLayout>
 
-    <!-- Tabs — mirrors .tabs from bloques.html -->
+    <!-- Tabs -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/bg"
         android:orientation="horizontal"
-        android:paddingStart="14dp" android:paddingEnd="14dp"
-        android:paddingTop="10dp">
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="4dp">
 
         <TextView
             android:id="@+id/tabEditor"
             android:layout_width="0dp"
-            android:layout_height="36dp"
+            android:layout_height="34dp"
             android:layout_weight="1"
             android:background="@drawable/bg_tab_active"
             android:gravity="center"
@@ -94,44 +78,44 @@
             android:textColor="@color/white"
             android:textSize="12sp"
             android:textStyle="bold"
+            android:fontFamily="sans-serif-medium"
             android:layout_marginEnd="4dp" />
 
         <TextView
             android:id="@+id/tabInstructions"
             android:layout_width="0dp"
-            android:layout_height="36dp"
+            android:layout_height="34dp"
             android:layout_weight="1"
             android:background="@drawable/bg_tab_inactive"
             android:gravity="center"
             android:text="Instrucciones"
             android:textColor="@color/txt2"
             android:textSize="12sp"
-            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium"
             android:layout_marginStart="4dp" />
     </LinearLayout>
 
-    <!-- Tab content -->
+    <!-- Tab content fills the rest -->
     <FrameLayout
-        android:id="@+id/tabContent"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="10dp">
+        android:layout_weight="1">
 
-        <!-- Editor WebView panel -->
+        <!-- ── EDITOR PANEL ─────────────────────────────────────────── -->
         <LinearLayout
             android:id="@+id/panelEditor"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
 
+            <!-- WebView fills everything minus the send button -->
             <WebView
                 android:id="@+id/webView"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1" />
 
-            <!-- Send button -->
+            <!-- Send button pinned at bottom -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSendBlockly"
                 style="@style/FrankyBtn.Orange"
@@ -139,36 +123,44 @@
                 android:layout_height="52dp"
                 android:text="▶  CARGAR A FRANKY"
                 android:textSize="15sp"
-                android:layout_margin="14dp" />
+                android:layout_marginStart="14dp"
+                android:layout_marginEnd="14dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp" />
         </LinearLayout>
 
-        <!-- Instructions panel -->
-        <ScrollView
+        <!-- ── INSTRUCTIONS PANEL ───────────────────────────────────── -->
+        <LinearLayout
             android:id="@+id/panelInstructions"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:orientation="vertical"
             android:visibility="gone">
 
-            <LinearLayout
+            <ScrollView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingStart="14dp" android:paddingEnd="14dp"
-                android:paddingBottom="20dp">
+                android:layout_height="0dp"
+                android:layout_weight="1">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_card"
                     android:orientation="vertical"
-                    android:padding="14dp"
-                    android:layout_marginTop="0dp">
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp">
 
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:text="INSTRUCCIONES ENVIADAS AL ROBOT"
-                        android:textColor="@color/acc2" android:textSize="12sp"
-                        android:textStyle="bold" android:letterSpacing="0.08"
-                        android:layout_marginBottom="10dp" />
+                        android:textColor="@color/acc2"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-medium"
+                        android:letterSpacing="0.08"
+                        android:layout_marginBottom="8dp" />
 
                     <TextView
                         android:id="@+id/tvInstructions"
@@ -179,20 +171,23 @@
                         android:textSize="12sp"
                         android:fontFamily="monospace"
                         android:background="#0D1117"
-                        android:padding="12dp" />
+                        android:padding="12dp"
+                        android:minLines="6" />
                 </LinearLayout>
+            </ScrollView>
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnBackFromBlockly"
-                    style="@style/FrankyBtn.Dark"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:text="⌂  Volver"
-                    android:textSize="13sp"
-                    android:layout_marginTop="12dp" />
-
-            </LinearLayout>
-        </ScrollView>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnBackFromBlockly"
+                style="@style/FrankyBtn.Dark"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="⌂  Volver"
+                android:textSize="13sp"
+                android:layout_marginStart="14dp"
+                android:layout_marginEnd="14dp"
+                android:layout_marginTop="6dp"
+                android:layout_marginBottom="8dp" />
+        </LinearLayout>
 
     </FrameLayout>
 

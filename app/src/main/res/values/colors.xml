@@ -10,10 +10,15 @@
     <color name="ok">#00C853</color>
     <color name="info">#2196F3</color>
     <color name="danger">#E53935</color>
+    <color name="danger_dim">#331A0000</color>
     <color name="warn">#FFA000</color>
     <color name="txt">#E0E0E0</color>
     <color name="txt2">#999999</color>
     <color name="brd">#333333</color>
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
+    <!-- Ripple overlays -->
+    <color name="ripple_light">#40FFFFFF</color>
+    <color name="ripple_dark">#40000000</color>
+    <color name="ripple_mid">#30E05A00</color>
 </resources>

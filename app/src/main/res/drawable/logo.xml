@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  LOGO PLACEHOLDER
+  Replace this file with res/drawable/logo.png (your actual logo image).
+  Recommended size: 120×34dp (matches the toolbar height).
+  The ImageView in each toolbar uses:
+      android:src="@drawable/logo"
+      android:contentDescription="@string/logo_desc"
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="34dp"
+    android:viewportWidth="120"
+    android:viewportHeight="34">
+
+    <!-- Orange accent bar on the left -->
+    <path
+        android:fillColor="#E05A00"
+        android:pathData="M0,0 L4,0 L4,34 L0,34 Z" />
+
+    <!-- "FRANKY" bold text area rendered as solid shapes -->
+    <!-- F -->
+    <path android:fillColor="#E0E0E0"
+        android:pathData="M8,6 L20,6 L20,10 L12,10 L12,14 L18,14 L18,18 L12,18 L12,28 L8,28 Z"/>
+    <!-- R -->
+    <path android:fillColor="#E0E0E0"
+        android:pathData="M22,6 L30,6 C34,6 36,9 36,12 C36,15 34,17 31,17 L36,28 L31,28 L27,18 L26,18 L26,28 L22,28 Z
+                          M26,10 L26,15 L29,15 C31,15 32,14 32,12 C32,10 31,10 29,10 Z"/>
+    <!-- A -->
+    <path android:fillColor="#E0E0E0"
+        android:pathData="M38,28 L44,6 L50,6 L56,28 L52,28 L50,22 L44,22 L42,28 Z
+                          M45,18 L49,18 L47,10 Z"/>
+    <!-- N -->
+    <path android:fillColor="#E0E0E0"
+        android:pathData="M58,6 L62,6 L68,20 L68,6 L72,6 L72,28 L68,28 L62,14 L62,28 L58,28 Z"/>
+    <!-- K -->
+    <path android:fillColor="#E0E0E0"
+        android:pathData="M74,6 L78,6 L78,15 L84,6 L89,6 L82,16 L89,28 L84,28 L78,18 L78,28 L74,28 Z"/>
+    <!-- Y -->
+    <path android:fillColor="#E0E0E0"
+        android:pathData="M90,6 L95,6 L99,14 L103,6 L108,6 L101,19 L101,28 L97,28 L97,19 Z"/>
+
+    <!-- "4.0" in orange -->
+    <path android:fillColor="#FF7A1A"
+        android:pathData="M111,6 L113,6 L113,18 L115,18 L115,6 L117,6 L117,20 L115,20 L115,22 L113,22 L113,20 L111,20 Z"/>
+    <path android:fillColor="#FF7A1A"
+        android:pathData="M111,24 L112,24 L112,26 L111,26 Z"/>
+    <path android:fillColor="#FF7A1A"
+        android:pathData="M113,22 C113,22 115,22 116,23 C117,24 117,26 116,27 C115,28 113,28 113,28 C113,28 111,28 110,27 C109,26 109,24 110,23 C111,22 113,22 113,22 Z"/>
+</vector>

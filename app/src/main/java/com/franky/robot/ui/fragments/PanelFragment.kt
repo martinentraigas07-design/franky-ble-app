@@ -19,61 +19,69 @@ import kotlin.math.roundToInt
 
 class PanelFragment : Fragment() {
 
-    private var _binding: FragmentPanelBinding? = null
-    private val binding get() = _binding!!
+    private var _b: FragmentPanelBinding? = null
+    private val b get() = _b!!
     private val vm: RobotViewModel by lazy { (requireActivity() as MainActivity).viewModel }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentPanelBinding.inflate(inflater, container, false)
-        return binding.root
+        _b = FragmentPanelBinding.inflate(inflater, container, false)
+        return b.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.btnPanelEStop.setOnClickListener { vm.eStop() }
-        binding.btnPanelBack.setOnClickListener { findNavController().popBackStack() }
+        // ── Toolbar ────────────────────────────────────────────────────
+        b.toolbar.tbSubtitle.text = "Panel Industrial"
+        b.toolbar.tbBadge.text    = "PANEL"
 
-        binding.seekSpeedPanel.setOnSeekBarChangeListener(
+        // ── Buttons ────────────────────────────────────────────────────
+        b.btnPanelEStop.setOnClickListener { vm.eStop() }
+        b.btnPanelBack.setOnClickListener  { findNavController().popBackStack() }
+
+        // ── Speed slider ───────────────────────────────────────────────
+        b.seekSpeedPanel.setOnSeekBarChangeListener(
             object : SeekBar.OnSeekBarChangeListener {
-                override fun onProgressChanged(sb: SeekBar?, progress: Int, fromUser: Boolean) {
-                    val pct = (progress * 100f / 255f).roundToInt()
-                    binding.tvSpeedPanel.text = "$pct%"
-                    if (fromUser) vm.setSpeed(progress)
+                override fun onProgressChanged(sb: SeekBar?, p: Int, fromUser: Boolean) {
+                    b.tvSpeedPanel.text = "${(p * 100f / 255f).roundToInt()}%"
+                    if (fromUser) vm.setSpeed(p)
                 }
                 override fun onStartTrackingTouch(sb: SeekBar?) {}
                 override fun onStopTrackingTouch(sb: SeekBar?) {}
             }
         )
 
+        // ── State ──────────────────────────────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 vm.stateData.collect { state ->
-                    binding.tvPanelMode.text = state
+                    b.tvPanelMode.text    = state
+                    b.toolbar.tbBadge.text = state
                 }
             }
         }
 
+        // ── Sensors ────────────────────────────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 vm.sensorData.collect { s ->
                     // ADC0
-                    binding.tvAdc0.text = s.adc0.toString()
-                    val pct = (s.adc0 * 100f / 4095f).roundToInt()
-                    binding.tvAdc0Pct.text = "$pct%"
-                    val parentW = (binding.barAdc0.parent as? View)?.width ?: 0
-                    if (parentW > 0) {
-                        val p = binding.barAdc0.layoutParams
-                        p.width = (parentW * pct / 100f).toInt()
-                        binding.barAdc0.layoutParams = p
+                    b.tvAdc0.text = s.adc0.toString()
+                    val pct = (s.adc0 * 100f / 4095f).roundToInt().coerceIn(0, 100)
+                    b.tvAdc0Pct.text = "$pct%"
+                    b.barAdc0.post {
+                        val parentW = (b.barAdc0.parent as? View)?.width ?: 0
+                        if (parentW > 0) {
+                            val lp = b.barAdc0.layoutParams
+                            lp.width = (parentW * pct / 100f).toInt()
+                            b.barAdc0.layoutParams = lp
+                        }
                     }
                     // DHT22
-                    binding.tvDhtTemp.text =
-                        if (s.temp == 0f) "-- °C" else "%.1f °C".format(s.temp)
-                    binding.tvDhtHum.text =
-                        if (s.hum == 0f) "-- %" else "%.1f %%".format(s.hum)
+                    b.tvDhtTemp.text = if (s.temp == 0f) "-- °C" else "%.1f °C".format(s.temp)
+                    b.tvDhtHum.text  = if (s.hum  == 0f) "-- %"  else "%.1f %%".format(s.hum)
                 }
             }
         }
@@ -81,6 +89,6 @@ class PanelFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _binding = null
+        _b = null
     }
 }

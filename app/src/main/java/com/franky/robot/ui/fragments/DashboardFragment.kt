@@ -19,77 +19,67 @@ import kotlinx.coroutines.launch
 
 class DashboardFragment : Fragment() {
 
-    private var _binding: FragmentDashboardBinding? = null
-    private val binding get() = _binding!!
+    private var _b: FragmentDashboardBinding? = null
+    private val b get() = _b!!
     private val vm: RobotViewModel by lazy { (requireActivity() as MainActivity).viewModel }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentDashboardBinding.inflate(inflater, container, false)
-        return binding.root
+        _b = FragmentDashboardBinding.inflate(inflater, container, false)
+        return b.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.btnEStop.setOnClickListener { vm.eStop() }
+        // ── Toolbar ────────────────────────────────────────────────────
+        b.toolbar.tbSubtitle.text = "Panel de Control"
+        b.toolbar.tbBadge.text = "IDLE"
 
-        binding.btnGoGamepad.setOnClickListener {
-            navigateSafe(R.id.action_dashboard_to_gamepad)
-        }
-        binding.btnGoBlockly.setOnClickListener {
-            navigateSafe(R.id.action_dashboard_to_blockly)
-        }
-        binding.btnGoPanel.setOnClickListener {
-            navigateSafe(R.id.action_dashboard_to_panel)
-        }
-        binding.btnDisconnect.setOnClickListener {
-            vm.disconnect()
-            // disconnect() triggers ConnectionStatus.DISCONNECTED which
-            // is collected below and handles the navigation back.
-        }
+        // ── Button actions ─────────────────────────────────────────────
+        b.btnEStop.setOnClickListener { vm.eStop() }
+        b.btnGoGamepad.setOnClickListener   { navigateSafe(R.id.action_dashboard_to_gamepad) }
+        b.btnGoBlockly.setOnClickListener   { navigateSafe(R.id.action_dashboard_to_blockly) }
+        b.btnGoPanel.setOnClickListener     { navigateSafe(R.id.action_dashboard_to_panel) }
+        b.btnDisconnect.setOnClickListener  { vm.disconnect() }
 
+        // ── State (mode) ────────────────────────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 vm.stateData.collect { state ->
-                    binding.tvModeBadge.text = state
-                    binding.tvModeChip.text = state
+                    b.toolbar.tbBadge.text = state   // badge in toolbar
+                    b.tvModeChip.text = state        // chip in the card
                 }
             }
         }
 
+        // ── Sensors ─────────────────────────────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 vm.sensorData.collect { s ->
-                    binding.tvAdc.text = s.adc0.toString()
-                    binding.tvTemp.text =
-                        if (s.temp == 0f) "-- °C" else "%.1f °C".format(s.temp)
-                    binding.tvHum.text =
-                        if (s.hum == 0f) "-- %" else "%.1f %%".format(s.hum)
+                    b.tvAdc.text  = s.adc0.toString()
+                    b.tvTemp.text = if (s.temp == 0f) "-- °C" else "%.1f °C".format(s.temp)
+                    b.tvHum.text  = if (s.hum  == 0f) "-- %"  else "%.1f %%".format(s.hum)
                 }
             }
         }
 
+        // ── Connection status ────────────────────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 vm.connectionStatus.collect { status ->
                     when (status) {
                         ConnectionStatus.CONNECTED -> {
-                            binding.tvConnChip.text = "CONECTADO"
-                            binding.tvConnChip.setTextColor(
-                                ContextCompat.getColor(requireContext(), R.color.ok)
-                            )
+                            b.tvConnChip.text = "CONECTADO"
+                            b.tvConnChip.setTextColor(
+                                ContextCompat.getColor(requireContext(), R.color.ok))
                         }
                         ConnectionStatus.DISCONNECTED -> {
-                            binding.tvConnChip.text = "DESCONECTADO"
-                            binding.tvConnChip.setTextColor(
-                                ContextCompat.getColor(requireContext(), R.color.danger)
-                            )
-                            // Guard: only navigate when we are still the current destination.
-                            // StateFlow replays its last value to new collectors, so without
-                            // this guard a second subscription would fire DISCONNECTED again
-                            // crashing with IllegalArgumentException.
+                            b.tvConnChip.text = "DESCONECTADO"
+                            b.tvConnChip.setTextColor(
+                                ContextCompat.getColor(requireContext(), R.color.danger))
+                            // Guard: only navigate if we are still on dashboard
                             if (findNavController().currentDestination?.id == R.id.dashboardFragment) {
                                 navigateSafe(R.id.action_dashboard_to_scanner)
                             }
@@ -101,20 +91,14 @@ class DashboardFragment : Fragment() {
         }
     }
 
-    /**
-     * Wraps navigate() in a try-catch so double-taps or reentrant calls
-     * don't crash with IllegalArgumentException / IllegalStateException.
-     */
+    /** Navigate safely — swallows IllegalArgumentException from double-taps */
     private fun navigateSafe(actionId: Int) {
-        try {
-            findNavController().navigate(actionId)
-        } catch (e: IllegalArgumentException) {
-            // Action not valid from current destination — already navigated
-        }
+        try { findNavController().navigate(actionId) }
+        catch (_: IllegalArgumentException) { /* already navigated */ }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _binding = null
+        _b = null
     }
 }
