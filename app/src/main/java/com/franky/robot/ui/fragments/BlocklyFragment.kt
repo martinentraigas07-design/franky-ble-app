@@ -220,12 +220,12 @@ class BlocklyFragment : Fragment() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 vm.uiEvents.collect { event ->
                     when (event) {
-                        is UiEvent.XmlSending -> {
+                        is UiEvent.ProgSending -> {
                             b.pbXml.visibility     = View.VISIBLE
                             b.toolbar.tbBadge.text = "ENVIANDO"
                             b.tvStatusText.text    = "Enviando programa…"
                         }
-                        is UiEvent.XmlSuccess -> {
+                        is UiEvent.ProgSuccess -> {
                             b.pbXml.visibility     = View.GONE
                             b.toolbar.tbBadge.text = "OK"
                             b.tvStatusText.text    = "Programa cargado ✓"
@@ -233,7 +233,7 @@ class BlocklyFragment : Fragment() {
                             sentLog.append("// Último programa enviado exitosamente")
                             showNotif("¡Cargado en FRANKY!", "#00C853")
                         }
-                        is UiEvent.XmlError -> {
+                        is UiEvent.ProgError -> {
                             b.pbXml.visibility     = View.GONE
                             b.toolbar.tbBadge.text = "ERROR"
                             b.tvStatusText.text    = "Error al enviar"

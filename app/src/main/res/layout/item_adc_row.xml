@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Reusable ADC display row: badge | label | bar | value | pct -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="6dp"
+    android:paddingBottom="6dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/tvAdcBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ADC0"
+            android:textColor="@color/ok"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:paddingStart="5dp" android:paddingEnd="5dp"
+            android:paddingTop="2dp"  android:paddingBottom="2dp"
+            android:background="#00C85322"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/tvAdcLabel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="GPIO0"
+            android:textColor="@color/txt2"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tvAdcValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="-"
+            android:textColor="@color/txt"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:fontFamily="monospace"
+            android:layout_marginEnd="6dp" />
+
+        <TextView
+            android:id="@+id/tvAdcPct"
+            android:layout_width="36dp"
+            android:layout_height="wrap_content"
+            android:text="-"
+            android:textColor="@color/txt2"
+            android:textSize="11sp"
+            android:gravity="end" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="6dp"
+        android:background="@color/bg3"
+        android:layout_marginTop="4dp">
+
+        <View
+            android:id="@+id/viewAdcBar"
+            android:layout_width="0dp"
+            android:layout_height="6dp"
+            android:background="@color/acc" />
+    </FrameLayout>
+
+</LinearLayout>
