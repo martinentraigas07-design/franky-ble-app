@@ -53,8 +53,8 @@ class PanelFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // Bind the two included ADC rows
-        adc0 = ItemAdcRowBinding.bind(b.rowAdc0)
-        adc1 = ItemAdcRowBinding.bind(b.rowAdc1)
+adc0 = ItemAdcRowBinding.inflate(layoutInflater)
+adc1 = ItemAdcRowBinding.inflate(layoutInflater)
 
         // Toolbar
         b.toolbar.tbSubtitle.text = "Panel Industrial"
