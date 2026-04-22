@@ -43,7 +43,9 @@ class BleManager(private val context: Context) {
 
     private val rxAccum = AtomicReference("")
 
-    private val writeCh       = Channel<WriteRequest>(capacity = 128)  // increased from 64
+ //   private val writeCh       = Channel<WriteRequest>(capacity = 128)  // increased from 64
+ private val driveChannel = Channel<String>(capacity = Channel.CONFLATED)
+private val cmdChannel   = Channel<WriteRequest>(capacity = 128)
     private var writeScope    = CoroutineScope(Dispatchers.IO + SupervisorJob())
     // Dedicated scope for reconnection — never cancelled so retry delays survive
     private val reconnectScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -114,7 +116,9 @@ class BleManager(private val context: Context) {
                 enableNotify(g)
                 startWriteWorker()
                 // Request immediate state snapshot — don't wait for 500ms batch timer
-                writeScope.launch { delay(200); sendFast("GET:STATE") }
+                writeScope.launch {
+				sendFast("GET:STATE")
+			}
             }
         }
 
@@ -175,7 +179,7 @@ class BleManager(private val context: Context) {
             val snrArr = o.optJSONArray("snr")
             val distances = if (snrArr != null)
                 (0 until snrArr.length()).map { snrArr.getInt(it) }
-            else listOf(-1, -1, -1)
+            else List(3) { -1 }
 
             // line sensors: firmware sends "line":[v1,v2]
             val lineArr = o.optJSONArray("line")
@@ -233,22 +237,22 @@ class BleManager(private val context: Context) {
         writeScope.cancel()
         writeScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
         writeScope.launch {
-            // Drain both channels: drive has priority over cmd
-            // select{} checks driveChannel first; if empty, falls through to cmdChannel
-            while (isActive) {
-                kotlinx.coroutines.selects.select<Unit> {
-                    driveChannel.onReceive { driveCmd ->
-                        performWrite(driveCmd, false)
-                    }
-                    cmdChannel.onReceive { req ->
-                        when (req) {
-                            is WriteRequest.Fast     -> performWrite(req.cmd, false)
-                            is WriteRequest.Reliable -> req.ack.complete(performWrite(req.cmd, true))
-                        }
-                    }
-                }
-            }
+    while (isActive) {
+
+        // 🔴 1. Drenar TODOS los DRIVE primero (prioridad real)
+        while (!driveChannel.isEmpty) {
+            val driveCmd = driveChannel.receive()
+            performWrite(driveCmd, false)
         }
+
+        // 🔴 2. Luego procesar comandos normales
+        val req = cmdChannel.receive()
+        when (req) {
+            is WriteRequest.Fast -> performWrite(req.cmd, false)
+            is WriteRequest.Reliable -> req.ack.complete(performWrite(req.cmd, true))
+        }
+    }
+}
     }
 
     private suspend fun performWrite(cmd: String, reliable: Boolean): Boolean {
@@ -301,16 +305,28 @@ class BleManager(private val context: Context) {
 
     fun sendFast(cmd: String) {
         if (_conn.value != ConnectionStatus.CONNECTED) return
-        if (cmd.startsWith("DRIVE:") || cmd == "F" || cmd == "B" ||
-            cmd == "L" || cmd == "R" || cmd == "FR" || cmd == "FL" ||
-            cmd == "BR" || cmd == "BL") {
-            // Real-time movement: use conflated channel (drops stale commands)
-            driveChannel.trySend(cmd)
-        } else {
-            // Non-movement commands: FIFO queue (must not be dropped or reordered)
-            cmdChannel.trySend(WriteRequest.Fast(cmd))
-        }
+        val result = if (cmd.startsWith("DRIVE:") || cmd == "F" || cmd == "B" ||
+    cmd == "L" || cmd == "R" || cmd == "FR" || cmd == "FL" ||
+    cmd == "BR" || cmd == "BL") {
+
+    driveChannel.trySend(cmd)
+
+} else {
+    cmdChannel.trySend(WriteRequest.Fast(cmd))
+}
+
+if (!result.isSuccess) {
+    Log.w(TAG, "Command dropped: $cmd")
+}
     }
+	fun sendDrive(cmd: String) {
+    if (_conn.value != ConnectionStatus.CONNECTED) return
+
+    val result = driveChannel.trySend(cmd)
+    if (!result.isSuccess) {
+        Log.w(TAG, "Drive dropped: $cmd")
+    }
+}
 
     suspend fun sendReliable(cmd: String): Boolean {
         if (_conn.value != ConnectionStatus.CONNECTED) return false

@@ -30,7 +30,7 @@ class RobotViewModel(val ble: BleManager) : ViewModel() {
     val stateData:        StateFlow<String>            = ble.stateData
 
     // Expose firmware CFG_OK / CFG_ERR events from BleManager
-    val configResult: kotlinx.coroutines.flow.StateFlow<String?> = ble.configResult
+    
 
     private val _events     = MutableSharedFlow<UiEvent>()
     val uiEvents: SharedFlow<UiEvent> = _events
@@ -43,9 +43,12 @@ class RobotViewModel(val ble: BleManager) : ViewModel() {
 
     // ── Movement ──────────────────────────────────────────────────────────
     fun drive(left: Int, right: Int) =
-        ble.sendFast("DRIVE:${left.coerceIn(-255,255)},${right.coerceIn(-255,255)}")
-    fun stop()                = ble.sendFast("STOP")
-    fun eStop()               { ble.sendFast("STOP"); ble.sendFast("MODE:MANUAL") }
+    ble.sendDrive("DRIVE:${left.coerceIn(-255,255)},${right.coerceIn(-255,255)}")
+    fun stop() = ble.sendDrive("DRIVE:0,0")
+    fun eStop() {
+    ble.sendDrive("DRIVE:0,0")
+    ble.sendFast("MODE:MANUAL")
+}
     fun setSpeed(pwm: Int)    = ble.sendFast("SPD:${pwm.coerceIn(0,255)}")
     fun sendFast(cmd: String) = ble.sendFast(cmd)
 
