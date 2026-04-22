@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    android:orientation="vertical">
+
+    <include layout="@layout/view_toolbar"
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="14dp" android:paddingEnd="14dp"
+            android:paddingTop="14dp"   android:paddingBottom="24dp">
+
+            <!-- Estado -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_card"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="12dp"
+                android:layout_marginBottom="12dp">
+                <TextView
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Estado:" android:textColor="@color/txt2" android:textSize="13sp" />
+                <TextView
+                    android:id="@+id/tvSumoStatus"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="IDLE"
+                    android:textColor="@color/acc2" android:textSize="13sp"
+                    android:textStyle="bold" android:fontFamily="monospace" />
+            </LinearLayout>
+
+            <!-- Estrategia -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_card"
+                android:orientation="vertical"
+                android:padding="14dp"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="ESTRATEGIA"
+                    android:textColor="@color/acc2" android:textSize="12sp"
+                    android:textStyle="bold" android:letterSpacing="0.08"
+                    android:layout_marginBottom="8dp" />
+
+                <RadioGroup
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <RadioButton
+                        android:id="@+id/rbAggressive"
+                        android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="⚔ Agresivo"
+                        android:textColor="@color/txt" android:textSize="12sp"
+                        android:checked="true" />
+                    <RadioButton
+                        android:id="@+id/rbDefensive"
+                        android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="🛡 Defensivo"
+                        android:textColor="@color/txt" android:textSize="12sp" />
+                    <RadioButton
+                        android:id="@+id/rbCustom"
+                        android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="⚙ Custom"
+                        android:textColor="@color/txt" android:textSize="12sp" />
+                </RadioGroup>
+            </LinearLayout>
+
+            <!-- Velocidades -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_card"
+                android:orientation="vertical"
+                android:padding="14dp"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="VELOCIDADES"
+                    android:textColor="@color/acc2" android:textSize="12sp"
+                    android:textStyle="bold" android:letterSpacing="0.08"
+                    android:layout_marginBottom="8dp" />
+
+                <!-- Búsqueda L -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:layout_marginBottom="4dp">
+                    <TextView android:layout_width="70dp" android:layout_height="wrap_content"
+                        android:text="Busq L:" android:textColor="@color/txt2" android:textSize="11sp" />
+                    <SeekBar
+                        android:id="@+id/seekSearchL"
+                        android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:max="510"
+                        android:progressTint="@color/info" android:thumbTint="@color/acc2" />
+                    <TextView
+                        android:id="@+id/tvSearchL"
+                        android:layout_width="44dp" android:layout_height="wrap_content"
+                        android:text="120" android:textColor="@color/txt"
+                        android:textSize="11sp" android:fontFamily="monospace" android:gravity="end" />
+                </LinearLayout>
+
+                <!-- Búsqueda R -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+                    <TextView android:layout_width="70dp" android:layout_height="wrap_content"
+                        android:text="Busq R:" android:textColor="@color/txt2" android:textSize="11sp" />
+                    <SeekBar
+                        android:id="@+id/seekSearchR"
+                        android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:max="510"
+                        android:progressTint="@color/info" android:thumbTint="@color/acc2" />
+                    <TextView
+                        android:id="@+id/tvSearchR"
+                        android:layout_width="44dp" android:layout_height="wrap_content"
+                        android:text="-80" android:textColor="@color/txt"
+                        android:textSize="11sp" android:fontFamily="monospace" android:gravity="end" />
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp"
+                    android:background="@color/brd" android:layout_marginBottom="8dp" />
+
+                <!-- Ataque L -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:layout_marginBottom="4dp">
+                    <TextView android:layout_width="70dp" android:layout_height="wrap_content"
+                        android:text="Ataque L:" android:textColor="@color/txt2" android:textSize="11sp" />
+                    <SeekBar
+                        android:id="@+id/seekAttackL"
+                        android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:max="255"
+                        android:progressTint="@color/danger" android:thumbTint="@color/acc2" />
+                    <TextView
+                        android:id="@+id/tvAttackL"
+                        android:layout_width="44dp" android:layout_height="wrap_content"
+                        android:text="255" android:textColor="@color/txt"
+                        android:textSize="11sp" android:fontFamily="monospace" android:gravity="end" />
+                </LinearLayout>
+
+                <!-- Ataque R -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:gravity="center_vertical">
+                    <TextView android:layout_width="70dp" android:layout_height="wrap_content"
+                        android:text="Ataque R:" android:textColor="@color/txt2" android:textSize="11sp" />
+                    <SeekBar
+                        android:id="@+id/seekAttackR"
+                        android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:max="255"
+                        android:progressTint="@color/danger" android:thumbTint="@color/acc2" />
+                    <TextView
+                        android:id="@+id/tvAttackR"
+                        android:layout_width="44dp" android:layout_height="wrap_content"
+                        android:text="255" android:textColor="@color/txt"
+                        android:textSize="11sp" android:fontFamily="monospace" android:gravity="end" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Apply config button (sends params without starting) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSumoApply"
+                style="@style/FrankyBtn.Dark"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:text="↑  Cargar parámetros"
+                android:textSize="13sp"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Sensor display card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_card"
+                android:orientation="vertical"
+                android:padding="14dp"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="SENSORES EN VIVO"
+                    android:textColor="@color/acc2" android:textSize="12sp"
+                    android:textStyle="bold" android:letterSpacing="0.08"
+                    android:layout_marginBottom="8dp" />
+
+                <!-- Distances -->
+                <TextView
+                    android:id="@+id/tvDistances"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="Dist: -- | -- | --"
+                    android:textColor="@color/info" android:textSize="14sp"
+                    android:fontFamily="monospace"
+                    android:layout_marginBottom="10dp" />
+
+                <!-- Line sensors -->
+                <LinearLayout
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:gravity="center_vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Línea:  " android:textColor="@color/txt2" android:textSize="12sp" />
+                    <TextView
+                        android:id="@+id/tvLine0"
+                        android:layout_width="60dp" android:layout_height="24dp"
+                        android:background="@color/brd"
+                        android:gravity="center"
+                        android:text="L1"
+                        android:textColor="@color/txt" android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:layout_marginEnd="8dp" />
+                    <TextView
+                        android:id="@+id/tvLine1"
+                        android:layout_width="60dp" android:layout_height="24dp"
+                        android:background="@color/brd"
+                        android:gravity="center"
+                        android:text="L2"
+                        android:textColor="@color/txt" android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Fixed bottom bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_card"
+        android:orientation="vertical"
+        android:paddingStart="14dp" android:paddingEnd="14dp"
+        android:paddingTop="8dp"   android:paddingBottom="8dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="6dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSumoStart"
+                style="@style/FrankyBtn.Green"
+                android:layout_width="0dp" android:layout_height="52dp"
+                android:layout_weight="1"
+                android:text="▶  INICIAR SUMO"
+                android:textSize="14sp"
+                android:layout_marginEnd="6dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSumoStop"
+                style="@style/FrankyBtn.Red"
+                android:layout_width="0dp" android:layout_height="52dp"
+                android:layout_weight="1"
+                android:text="■  DETENER"
+                android:textSize="14sp"
+                android:enabled="false"
+                android:layout_marginStart="6dp" />
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSumoBack"
+            style="@style/FrankyBtn.Dark"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:text="⌂  Volver"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+</LinearLayout>

@@ -5,14 +5,52 @@
     android:background="@color/bg"
     android:orientation="vertical">
 
-    <include
-        layout="@layout/view_toolbar"
+    <include layout="@layout/view_toolbar"
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
+    <!-- Quick status row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/bg2"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="14dp" android:paddingEnd="14dp"
+        android:paddingTop="8dp" android:paddingBottom="8dp">
 
-    <!-- Content -->
+        <TextView android:id="@+id/tvConnChip"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="CONECTADO" android:textColor="@color/ok"
+            android:textSize="11sp" android:textStyle="bold"
+            android:paddingStart="10dp" android:paddingEnd="10dp"
+            android:paddingTop="3dp" android:paddingBottom="3dp"
+            android:background="@drawable/bg_badge"
+            android:layout_marginEnd="8dp" />
+
+        <TextView android:id="@+id/tvModeChip"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="IDLE" android:textColor="@color/txt2"
+            android:textSize="11sp" android:textStyle="bold" />
+
+        <android.widget.Space android:layout_width="0dp"
+            android:layout_height="1dp" android:layout_weight="1" />
+
+        <TextView android:id="@+id/tvAdc"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="ADC: --" android:textColor="@color/txt2" android:textSize="11sp"
+            android:fontFamily="monospace" android:layout_marginEnd="8dp" />
+        <TextView android:id="@+id/tvTemp"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="-- °C" android:textColor="@color/txt"
+            android:textSize="12sp" android:fontFamily="monospace" android:layout_marginEnd="8dp"/>
+        <TextView android:id="@+id/tvHum"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="-- %" android:textColor="@color/txt"
+            android:textSize="12sp" android:fontFamily="monospace"/>
+    </LinearLayout>
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -23,176 +61,71 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingStart="14dp" android:paddingEnd="14dp"
-            android:paddingTop="14dp"
-            android:paddingBottom="20dp">
+            android:paddingTop="16dp" android:paddingBottom="24dp">
 
-            <!-- Estado del Sistema card -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_card"
-                android:orientation="vertical"
-                android:padding="14dp"
-                android:layout_marginBottom="12dp">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="ESTADO DEL SISTEMA"
-                    android:textColor="@color/acc2"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.08"
-                    android:paddingBottom="7dp"
-                    android:layout_marginBottom="2dp" />
-
-                <!-- Divider -->
-                <View android:layout_width="match_parent" android:layout_height="1dp"
-                    android:background="@color/brd" android:layout_marginBottom="0dp"/>
-
-                <!-- Row: Conexión -->
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:orientation="horizontal" android:paddingTop="8dp" android:paddingBottom="8dp">
-                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
-                        android:layout_weight="1" android:text="Conexión"
-                        android:textColor="@color/txt2" android:textSize="13sp" />
-                    <TextView android:id="@+id/tvConnChip"
-                        android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="CONECTADO" android:textColor="@color/ok"
-                        android:textSize="11sp" android:textStyle="bold"
-                        android:paddingStart="8dp" android:paddingEnd="8dp" android:paddingTop="2dp" android:paddingBottom="2dp" />
-                </LinearLayout>
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/brd"/>
-
-                <!-- Row: Modo activo -->
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:orientation="horizontal" android:paddingTop="8dp" android:paddingBottom="8dp">
-                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
-                        android:layout_weight="1" android:text="Modo activo"
-                        android:textColor="@color/txt2" android:textSize="13sp" />
-                    <TextView android:id="@+id/tvModeChip"
-                        android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="IDLE" android:textColor="@color/acc2"
-                        android:textSize="11sp" android:textStyle="bold"
-                        android:paddingStart="8dp" android:paddingEnd="8dp" android:paddingTop="2dp" android:paddingBottom="2dp" />
-                </LinearLayout>
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/brd"/>
-
-                <!-- Row: ADC0 -->
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:orientation="horizontal" android:paddingTop="8dp" android:paddingBottom="8dp">
-                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
-                        android:layout_weight="1" android:text="ADC0"
-                        android:textColor="@color/txt2" android:textSize="13sp" />
-                    <TextView android:id="@+id/tvAdc"
-                        android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="-" android:textColor="@color/txt"
-                        android:textSize="13sp" android:textStyle="bold" />
-                </LinearLayout>
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/brd"/>
-
-                <!-- Row: Temperatura -->
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:orientation="horizontal" android:paddingTop="8dp" android:paddingBottom="8dp">
-                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
-                        android:layout_weight="1" android:text="Temperatura"
-                        android:textColor="@color/txt2" android:textSize="13sp" />
-                    <TextView android:id="@+id/tvTemp"
-                        android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="-- °C" android:textColor="@color/txt"
-                        android:textSize="13sp" android:textStyle="bold" />
-                </LinearLayout>
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/brd"/>
-
-                <!-- Row: Humedad -->
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:orientation="horizontal" android:paddingTop="8dp" android:paddingBottom="8dp">
-                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
-                        android:layout_weight="1" android:text="Humedad"
-                        android:textColor="@color/txt2" android:textSize="13sp" />
-                    <TextView android:id="@+id/tvHum"
-                        android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="-- %" android:textColor="@color/txt"
-                        android:textSize="13sp" android:textStyle="bold" />
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <!-- Módulos card -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_card"
-                android:orientation="vertical"
-                android:padding="14dp"
-                android:layout_marginBottom="12dp">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="MÓDULOS"
-                    android:textColor="@color/acc2"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.08"
-                    android:paddingBottom="7dp"
-                    android:layout_marginBottom="6dp" />
-
+            <!-- Module grid — 2 columns -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginBottom="10dp">
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnGoGamepad"
                     style="@style/FrankyBtn.Orange"
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:text="🎮  Gamepad"
-                    android:textSize="14sp"
-                    android:layout_marginBottom="7dp" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnGoBlockly"
-                    style="@style/FrankyBtn.Blue"
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:text="⬛  Programación Bloques"
-                    android:textSize="14sp"
-                    android:layout_marginBottom="7dp" />
-
+                    android:layout_width="0dp" android:layout_height="80dp"
+                    android:layout_weight="1"
+                    android:text="🎮\nGamepad"
+                    android:textSize="13sp"
+                    android:layout_marginEnd="5dp" />
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnGoPanel"
-                    style="@style/FrankyBtn.Dark"
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:text="⚙  Panel Industrial"
-                    android:textSize="14sp"
-                    android:layout_marginBottom="0dp" />
-
+                    style="@style/FrankyBtn.Blue"
+                    android:layout_width="0dp" android:layout_height="80dp"
+                    android:layout_weight="1"
+                    android:text="📊\nPanel"
+                    android:textSize="13sp"
+                    android:layout_marginStart="5dp" />
             </LinearLayout>
 
-            <!-- PARAR TODO card -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_card"
-                android:orientation="vertical"
-                android:padding="14dp"
-                android:layout_marginBottom="12dp">
-
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginBottom="10dp">
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnEStop"
-                    style="@style/FrankyBtn.Red"
-                    android:layout_width="match_parent"
-                    android:layout_height="64dp"
-                    android:text="■■  PARAR TODO"
-                    android:textSize="18sp" />
-
+                    android:id="@+id/btnGoSumo"
+                    style="@style/FrankyBtn.Green"
+                    android:layout_width="0dp" android:layout_height="80dp"
+                    android:layout_weight="1"
+                    android:text="🥊\nSumo"
+                    android:textSize="13sp"
+                    android:layout_marginEnd="5dp" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnGoConfig"
+                    style="@style/FrankyBtn.Dark"
+                    android:layout_width="0dp" android:layout_height="80dp"
+                    android:layout_weight="1"
+                    android:text="⚙️\nConfiguración"
+                    android:textSize="12sp"
+                    android:layout_marginStart="5dp" />
             </LinearLayout>
 
-            <!-- Disconnect -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnGoBlockly"
+                style="@style/FrankyBtn.Dark"
+                android:layout_width="match_parent" android:layout_height="60dp"
+                android:text="🧩  Programación con Bloques"
+                android:textSize="13sp"
+                android:layout_marginBottom="20dp" />
+
+            <!-- Emergency stop -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEStop"
+                style="@style/FrankyBtn.Red"
+                android:layout_width="match_parent" android:layout_height="60dp"
+                android:text="■■  PARAR TODO"
+                android:textSize="16sp"
+                android:layout_marginBottom="10dp" />
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDisconnect"
                 style="@style/FrankyBtn.Dark"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:text="⏏  Desconectar"
+                android:layout_width="match_parent" android:layout_height="44dp"
+                android:text="⏻  Desconectar"
                 android:textSize="13sp" />
 
         </LinearLayout>

@@ -144,9 +144,14 @@ class GamepadFragment : Fragment() {
     // ── Joystick ───────────────────────────────────────────────────────────
 
     private fun setupJoystick() {
+        var lastJoySentMs = 0L
         b.joystick.onMove = { left, right ->
-            val cmd = "M:$left,$right"
-            if (cmd != lastJoyCmd) { lastJoyCmd = cmd; vm.sendFast(cmd) }
+            val cmd = "DRIVE:$left,$right"
+            val now = System.currentTimeMillis()
+            // 20Hz cap: prevents write channel flood during continuous joystick rotation
+            if (cmd != lastJoyCmd && (now - lastJoySentMs) >= 50L) {
+                lastJoyCmd = cmd; lastJoySentMs = now; vm.drive(left, right)
+            }
         }
         b.joystick.onStop = {
             if (lastJoyCmd != "S") { lastJoyCmd = "S"; vm.stop() }

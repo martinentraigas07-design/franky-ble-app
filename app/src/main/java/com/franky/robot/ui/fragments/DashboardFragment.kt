@@ -33,42 +33,42 @@ class DashboardFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // ── Toolbar ────────────────────────────────────────────────────
         b.toolbar.tbSubtitle.text = "Panel de Control"
-        b.toolbar.tbBadge.text = "IDLE"
+        b.toolbar.tbBadge.text    = "IDLE"
 
-        // ── Button actions ─────────────────────────────────────────────
-        b.btnEStop.setOnClickListener { vm.eStop() }
-        b.btnGoGamepad.setOnClickListener   { navigateSafe(R.id.action_dashboard_to_gamepad) }
-        b.btnGoBlockly.setOnClickListener   { navigateSafe(R.id.action_dashboard_to_blockly) }
-        b.btnGoPanel.setOnClickListener     { navigateSafe(R.id.action_dashboard_to_panel) }
+        b.btnEStop.setOnClickListener       { vm.eStop() }
+        b.btnGoGamepad.setOnClickListener   { nav(R.id.action_dashboard_to_gamepad) }
+        b.btnGoPanel.setOnClickListener     { nav(R.id.action_dashboard_to_panel) }
+        b.btnGoSumo.setOnClickListener      { nav(R.id.action_dashboard_to_sumo) }
+        b.btnGoConfig.setOnClickListener    { nav(R.id.action_dashboard_to_config) }
+        b.btnGoBlockly.setOnClickListener   { nav(R.id.action_dashboard_to_blockly) }
         b.btnDisconnect.setOnClickListener  { vm.disconnect() }
 
-        // ── State (mode) ────────────────────────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 vm.stateData.collect { state ->
-                    b.toolbar.tbBadge.text = state   // badge in toolbar
-                    b.tvModeChip.text = state        // chip in the card
+                    if (!isAdded) return@collect
+                    b.tvModeChip.text = state
+                    b.toolbar.tbBadge.text = state
                 }
             }
         }
 
-        // ── Sensors ─────────────────────────────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 vm.sensorData.collect { s ->
-                    b.tvAdc.text  = s.adc0.toString()
+                    if (!isAdded) return@collect
+                    b.tvAdc.text  = "ADC: ${s.adc0}"
                     b.tvTemp.text = if (s.temp == 0f) "-- °C" else "%.1f °C".format(s.temp)
                     b.tvHum.text  = if (s.hum  == 0f) "-- %"  else "%.1f %%".format(s.hum)
                 }
             }
         }
 
-        // ── Connection status ────────────────────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 vm.connectionStatus.collect { status ->
+                    if (!isAdded) return@collect
                     when (status) {
                         ConnectionStatus.CONNECTED -> {
                             b.tvConnChip.text = "CONECTADO"
@@ -79,10 +79,8 @@ class DashboardFragment : Fragment() {
                             b.tvConnChip.text = "DESCONECTADO"
                             b.tvConnChip.setTextColor(
                                 ContextCompat.getColor(requireContext(), R.color.danger))
-                            // Guard: only navigate if we are still on dashboard
-                            if (findNavController().currentDestination?.id == R.id.dashboardFragment) {
-                                navigateSafe(R.id.action_dashboard_to_scanner)
-                            }
+                            if (findNavController().currentDestination?.id == R.id.dashboardFragment)
+                                nav(R.id.action_dashboard_to_scanner)
                         }
                         else -> {}
                     }
@@ -91,14 +89,10 @@ class DashboardFragment : Fragment() {
         }
     }
 
-    /** Navigate safely — swallows IllegalArgumentException from double-taps */
-    private fun navigateSafe(actionId: Int) {
-        try { findNavController().navigate(actionId) }
-        catch (_: IllegalArgumentException) { /* already navigated */ }
+    private fun nav(id: Int) {
+        try { findNavController().navigate(id) }
+        catch (_: IllegalArgumentException) {}
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _b = null
-    }
+    override fun onDestroyView() { super.onDestroyView(); _b = null }
 }
