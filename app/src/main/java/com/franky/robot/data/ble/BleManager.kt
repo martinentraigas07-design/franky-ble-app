@@ -233,26 +233,33 @@ private val cmdChannel   = Channel<WriteRequest>(capacity = 128)
     }
 
     // ── Write worker ──────────────────────────────────────────────────────
+    // [FIX-CRÍTICO] El worker original usaba cmdChannel.receive() bloqueante
+    // después de drenar driveChannel. Si no llegaba ningún cmd normal, el
+    // worker quedaba bloqueado indefinidamente y los comandos DRIVE nunca
+    // se transmitían. Corregido con select{} que espera en ambos canales
+    // simultáneamente: el primero en tener datos gana, sin bloquear al otro.
     private fun startWriteWorker() {
         writeScope.cancel()
         writeScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
         writeScope.launch {
-    while (isActive) {
-
-        // 🔴 1. Drenar TODOS los DRIVE primero (prioridad real)
-        while (!driveChannel.isEmpty) {
-            val driveCmd = driveChannel.receive()
-            performWrite(driveCmd, false)
+            while (isActive) {
+                select {
+                    // driveChannel es CONFLATED: solo retiene el último comando.
+                    // Esto es correcto para joystick/D-PAD: queremos el estado
+                    // más reciente, no una cola de movimientos obsoletos.
+                    driveChannel.onReceive { cmd ->
+                        performWrite(cmd, false)
+                    }
+                    // cmdChannel: cola de 128 — procesa en orden FIFO.
+                    cmdChannel.onReceive { req ->
+                        when (req) {
+                            is WriteRequest.Fast     -> performWrite(req.cmd, false)
+                            is WriteRequest.Reliable -> req.ack.complete(performWrite(req.cmd, true))
+                        }
+                    }
+                }
+            }
         }
-
-        // 🔴 2. Luego procesar comandos normales
-        val req = cmdChannel.receive()
-        when (req) {
-            is WriteRequest.Fast -> performWrite(req.cmd, false)
-            is WriteRequest.Reliable -> req.ack.complete(performWrite(req.cmd, true))
-        }
-    }
-}
     }
 
     private suspend fun performWrite(cmd: String, reliable: Boolean): Boolean {

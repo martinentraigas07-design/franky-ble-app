@@ -155,8 +155,13 @@ class RobotViewModel(val ble: BleManager) : ViewModel() {
                 "franky_velocidad"    -> out.add("{\"t\":\"spd\",\"v\":${field(xml,bt,be,"SPD").toIntOrNull()?:200}}")
                 "franky_led_on"       -> out.add("{\"t\":\"led\",\"v\":\"ON\"}")
                 "franky_led_off"      -> out.add("{\"t\":\"led\",\"v\":\"OFF\"}")
+                // [FIX] franky_led_pwm faltaba — el bloque Blockly existía pero se ignoraba
+                "franky_led_pwm"      -> out.add("{\"t\":\"led\",\"v\":\"PWM\",\"p\":${field(xml,bt,be,"PCT").toIntOrNull()?:50}}")
                 "franky_esperar"      -> out.add("{\"t\":\"wait\",\"ms\":${field(xml,bt,be,"MS").toLongOrNull()?:500}}")
                 "franky_gpio_out"     -> out.add("{\"t\":\"gpio\",\"pin\":${field(xml,bt,be,"PIN").toIntOrNull()?:9},\"val\":${field(xml,bt,be,"VAL").toIntOrNull()?:0}}")
+                // [FIX] I2C y SPI habilitables desde Blockly
+                "franky_i2c_habilitar" -> out.add("{\"t\":\"i2c\",\"v\":1}")
+                "franky_spi_habilitar" -> out.add("{\"t\":\"spi\",\"v\":1}")
                 "controls_repeat_ext" -> {
                     val n = (field(xml,bt,be,"TIMES").toIntOrNull()?:1).coerceIn(1,20)
                     val inner = extractStatement(if(be>0) xml.substring(bt,be+8) else xml.substring(bt), "DO")
