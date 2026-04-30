@@ -41,7 +41,6 @@ class DashboardFragment : Fragment() {
         b.btnGoPanel.setOnClickListener     { nav(R.id.action_dashboard_to_panel) }
         b.btnGoSumo.setOnClickListener      { nav(R.id.action_dashboard_to_sumo) }
         b.btnGoConfig.setOnClickListener    { nav(R.id.action_dashboard_to_config) }
-        b.btnGoBlockly.setOnClickListener   { nav(R.id.action_dashboard_to_blockly) }
         b.btnDisconnect.setOnClickListener  { vm.disconnect() }
 
         viewLifecycleOwner.lifecycleScope.launch {

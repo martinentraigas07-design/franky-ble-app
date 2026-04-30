@@ -85,14 +85,16 @@ class RobotViewModel(val ble: BleManager) : ViewModel() {
 
     // ── Sumo ──────────────────────────────────────────────────────────────
     fun applySumoConfig(cfg: SumoConfig) { _sumoConfig.value = cfg; ble.sendFast(cfg.toBleCmd()) }
-    fun sumoStart() {
-        // Send SUMO params reliably first, then activate mode
-        viewModelScope.launch {
-            ble.sendReliable(_sumoConfig.value.toBleCmd())
-            ble.sendFast("MODE:SUMO")
-        }
+    fun sumoStop()  {
+        // SUMO:STOP → firmware para motores + apaga LED + vuelve a IDLE
+        ble.sendFast("SUMO:STOP")
+        ble.sendFast("LED:OFF")
     }
-    fun sumoStop()  = ble.sendFast("MODE:MANUAL")
+
+    // sharpThreshold: envía el umbral ADC del sensor Sharp al firmware
+    // El firmware lo usa en modo SUMO autónomo para detectar oponente
+    fun setSharpThreshold(pin: Int, threshold: Int) =
+        ble.sendFast("CONFIG:SHARP_PIN=$pin,SHARP_THRESH=$threshold")
 
     // ── Blockly program ───────────────────────────────────────────────────
     fun sendXml(xml: String) {

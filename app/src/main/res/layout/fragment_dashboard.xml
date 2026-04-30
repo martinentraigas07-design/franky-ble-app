@@ -104,14 +104,6 @@
                     android:layout_marginStart="5dp" />
             </LinearLayout>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnGoBlockly"
-                style="@style/FrankyBtn.Dark"
-                android:layout_width="match_parent" android:layout_height="60dp"
-                android:text="🧩  Programación con Bloques"
-                android:textSize="13sp"
-                android:layout_marginBottom="20dp" />
-
             <!-- Emergency stop -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnEStop"

@@ -17,7 +17,6 @@
         android:name="com.franky.robot.ui.fragments.DashboardFragment"
         android:label="Dashboard">
         <action android:id="@+id/action_dashboard_to_gamepad"  app:destination="@id/gamepadFragment" />
-        <action android:id="@+id/action_dashboard_to_blockly"  app:destination="@id/blocklyFragment" />
         <action android:id="@+id/action_dashboard_to_panel"    app:destination="@id/panelFragment" />
         <action android:id="@+id/action_dashboard_to_sumo"     app:destination="@id/sumoFragment" />
         <action android:id="@+id/action_dashboard_to_config"   app:destination="@id/configFragment" />

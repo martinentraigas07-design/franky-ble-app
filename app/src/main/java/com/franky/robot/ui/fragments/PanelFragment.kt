@@ -36,7 +36,7 @@ class PanelFragment : Fragment() {
     private lateinit var adc0: ItemAdcRowBinding
     private lateinit var adc1: ItemAdcRowBinding
 
-    // Sonar state
+    // ── Sonar state
     private var sonarActive = false
 
     // LED blink animation
@@ -73,6 +73,7 @@ class PanelFragment : Fragment() {
 
         setupAdcLabels()
         setupSonar()
+        setupSharp()
         setupLed()
         setupGpioOutputs()
         setupBuses()
@@ -92,6 +93,41 @@ class PanelFragment : Fragment() {
         adc0.tvAdcLabel.text = "GPIO0"
         adc1.tvAdcBadge.text = "ADC1"
         adc1.tvAdcLabel.text = "GPIO1"
+    }
+
+    // ── Sharp GP2Y0A21 ────────────────────────────────────────────────────
+    // El sensor tiene zona no lineal < ~15cm; se usa en modo DIGITAL:
+    // ADC > threshold → DETECTADO (objeto dentro del rango útil)
+    // ADC ≤ threshold → LIBRE
+    // El umbral es configurable 0-4095 (default 2000 ≈ objeto a ~20cm)
+    private var sharpPin = 0       // 0 = ADC0/GPIO0, 1 = ADC1/GPIO1
+    private var sharpThreshold = 2000
+
+    private fun setupSharp() {
+        b.seekSharpThresh.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar?, p: Int, fromUser: Boolean) {
+                sharpThreshold = p
+                b.tvSharpThresh.text = p.toString()
+            }
+            override fun onStartTrackingTouch(sb: SeekBar?) {}
+            override fun onStopTrackingTouch(sb: SeekBar?) {}
+        })
+        b.rgSharpPin.setOnCheckedChangeListener { _, checkedId ->
+            sharpPin = if (checkedId == R.id.rbSharpAdc0) 0 else 1
+        }
+        b.btnSharpApply.setOnClickListener {
+            vm.setSharpThreshold(sharpPin, sharpThreshold)
+        }
+    }
+
+    private fun updateSharpIndicator(adcValue: Int) {
+        if (!isAdded) return
+        b.tvSharpRaw.text = adcValue.toString()
+        val detected = adcValue > sharpThreshold
+        b.tvSharpStatus.text = if (detected) "DETECTADO" else "LIBRE"
+        val color = if (detected) R.color.danger else R.color.ok
+        b.tvSharpStatus.setBackgroundColor(ContextCompat.getColor(requireContext(), color))
+        b.tvSharpStatus.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
     }
 
     // ── Sonar ─────────────────────────────────────────────────────────────
@@ -258,6 +294,11 @@ class PanelFragment : Fragment() {
                     } else {
                         updateAdcRow(adc1, s.adc1)
                     }
+
+                    // ── Sharp GP2Y indicador ──────────────────────────────
+                    // Usa el ADC del pin configurado (0 o 1)
+                    val sharpRaw = if (sharpPin == 0) s.adc0 else s.adc1
+                    if (sharpRaw >= 0) updateSharpIndicator(sharpRaw)
 
                     // ── Digital pins ──────────────────────────────────────
                     // ── FIX B2: digitalPins is Map<GPIO_number, value>.

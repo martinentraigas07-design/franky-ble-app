@@ -253,6 +253,20 @@
         android:paddingStart="14dp" android:paddingEnd="14dp"
         android:paddingTop="8dp"   android:paddingBottom="8dp">
 
+        <!-- Countdown de seguridad (5 segundos reglamentarios LNR) -->
+        <TextView
+            android:id="@+id/tvCountdown"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="@color/warn"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:fontFamily="monospace"
+            android:gravity="center"
+            android:visibility="gone"
+            android:layout_marginBottom="6dp" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
