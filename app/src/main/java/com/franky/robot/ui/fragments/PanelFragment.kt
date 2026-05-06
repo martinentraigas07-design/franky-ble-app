@@ -20,6 +20,8 @@ import com.franky.robot.MainActivity
 import com.franky.robot.R
 import com.franky.robot.databinding.FragmentPanelBinding
 import com.franky.robot.databinding.ItemAdcRowBinding
+import com.franky.robot.domain.SensorSlot
+import com.franky.robot.domain.SensorType
 import com.franky.robot.ui.viewmodel.RobotViewModel
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -30,27 +32,34 @@ class PanelFragment : Fragment() {
     private val b get() = _b!!
     private val vm: RobotViewModel by lazy { (requireActivity() as MainActivity).viewModel }
 
-    // ── FIX B3: In ViewBinding, b.rowAdc0 IS already ItemAdcRowBinding.
-    //    Do NOT call ItemAdcRowBinding.bind(b.rowAdc0).
-    //    The correct pattern is simply assigning b.rowAdc0 directly.
     private lateinit var adc0: ItemAdcRowBinding
     private lateinit var adc1: ItemAdcRowBinding
 
-    // ── Sonar state
+    // ── Sonar — único estado local permitido: control operacional de UI
+    // El sonar en Panel Industrial es una sesión de prueba, no config permanente.
+    // No forma parte de HardwareConfig porque no es un sensor de combate;
+    // es una herramienta de diagnóstico ad-hoc (pin configurable en tiempo real).
     private var sonarActive = false
 
-    // LED blink animation
+    // LED blink — animación local de UI, no estado de sistema
     private var blinkHandler: Handler? = null
     private var blinkOn = false
 
-    // ── FIX B4: Spinner data — parallel arrays kept in sync.
-    //    selectedItemPosition maps directly to these arrays.
+    // ── Parallel arrays para spinners Sonar — inmutables, solo lectura
     private val SONAR_PIN_VALUES  = intArrayOf(20, 21,  6,  7, 10)
     private val SONAR_PIN_LABELS  = arrayOf("GPIO20","GPIO21","GPIO6","GPIO7","GPIO10")
     private val OUTPUT_PIN_VALUES = intArrayOf( 9,  6,  7, 10, 20, 21)
     private val OUTPUT_PIN_LABELS = arrayOf("GPIO9","GPIO6","GPIO7","GPIO10","GPIO20","GPIO21")
 
-    // ── Lifecycle ──────────────────────────────────────────────────────────
+    // ── Sharp: pin y umbral activos derivados de vm.hwConfig (fuente de verdad)
+    // Estos valores se leen del HardwareConfig configurado en ConfigFragment.
+    // El Panel NUNCA modifica estos valores — solo los usa para visualización.
+    private var activeSharpPin: Int = 0        // 0=ADC0, 1=ADC1
+    private var activeSharpThreshold: Int = 0  // 0=sin sensor configurado
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Lifecycle
+    // ─────────────────────────────────────────────────────────────────────
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -62,9 +71,6 @@ class PanelFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // ── FIX B3: b.rowAdc0 / b.rowAdc1 are already ItemAdcRowBinding instances.
-        //    ViewBinding generates typed fields for <include> tags.
-        //    Do NOT wrap with ItemAdcRowBinding.bind() — that causes ClassCastException.
         adc0 = b.rowAdc0
         adc1 = b.rowAdc1
 
@@ -73,7 +79,6 @@ class PanelFragment : Fragment() {
 
         setupAdcLabels()
         setupSonar()
-        setupSharp()
         setupLed()
         setupGpioOutputs()
         setupBuses()
@@ -82,11 +87,14 @@ class PanelFragment : Fragment() {
         b.btnPanelEStop.setOnClickListener { vm.eStop() }
         b.btnPanelBack.setOnClickListener  { findNavController().popBackStack() }
 
+        observeHwConfig()
         observeState()
         observeSensors()
     }
 
-    // ── ADC row labels ────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
+    // ADC labels
+    // ─────────────────────────────────────────────────────────────────────
 
     private fun setupAdcLabels() {
         adc0.tvAdcBadge.text = "ADC0"
@@ -95,53 +103,76 @@ class PanelFragment : Fragment() {
         adc1.tvAdcLabel.text = "GPIO1"
     }
 
-    // ── Sharp GP2Y0A21 ────────────────────────────────────────────────────
-    // El sensor tiene zona no lineal < ~15cm; se usa en modo DIGITAL:
-    // ADC > threshold → DETECTADO (objeto dentro del rango útil)
-    // ADC ≤ threshold → LIBRE
-    // El umbral es configurable 0-4095 (default 2000 ≈ objeto a ~20cm)
-    private var sharpPin = 0       // 0 = ADC0/GPIO0, 1 = ADC1/GPIO1
-    private var sharpThreshold = 2000
+    // ─────────────────────────────────────────────────────────────────────
+    // HardwareConfig observer — única fuente de verdad para sensores
+    //
+    // El Panel Industrial VISUALIZA la configuración establecida en
+    // ConfigFragment → HardwareConfig → ViewModel. No la modifica.
+    //
+    // Cuando se detecta un sensor Sharp activo en la config, el Panel
+    // actualiza activeSharpPin y activeSharpThreshold para que el
+    // indicador de detección funcione correctamente con esos parámetros.
+    // ─────────────────────────────────────────────────────────────────────
 
-    private fun setupSharp() {
-        b.seekSharpThresh.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(sb: SeekBar?, p: Int, fromUser: Boolean) {
-                sharpThreshold = p
-                b.tvSharpThresh.text = p.toString()
+    private fun observeHwConfig() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.hwConfig.collect { cfg ->
+                    if (!isAdded) return@collect
+
+                    // Buscar el primer sensor Sharp activo en los slots de distancia
+                    val sharpSlot: SensorSlot? = cfg.distSlots
+                        .firstOrNull { it.type == SensorType.SHARP && it.isValid() }
+
+                    if (sharpSlot != null) {
+                        // Sharp configurado: actualizar parámetros de visualización
+                        activeSharpPin       = sharpSlot.pin1      // 0=ADC0, 1=ADC1
+                        activeSharpThreshold = sharpSlot.threshold // umbral ADC
+                        b.cardSharp.visibility = View.VISIBLE
+                        // Mostrar umbral activo como referencia (solo lectura)
+                        b.tvSharpThresh.text = sharpSlot.threshold.toString()
+                        b.tvSharpStatus.text = "--"
+                        b.tvSharpRaw.text    = "--"
+                    } else {
+                        // No hay Sharp configurado: ocultar card y resetear estado
+                        activeSharpPin       = 0
+                        activeSharpThreshold = 0
+                        b.cardSharp.visibility = View.GONE
+                    }
+                }
             }
-            override fun onStartTrackingTouch(sb: SeekBar?) {}
-            override fun onStopTrackingTouch(sb: SeekBar?) {}
-        })
-        b.rgSharpPin.setOnCheckedChangeListener { _, checkedId ->
-            sharpPin = if (checkedId == R.id.rbSharpAdc0) 0 else 1
-        }
-        b.btnSharpApply.setOnClickListener {
-            vm.setSharpThreshold(sharpPin, sharpThreshold)
         }
     }
 
-    private fun updateSharpIndicator(adcValue: Int) {
-        if (!isAdded) return
-        b.tvSharpRaw.text = adcValue.toString()
-        val detected = adcValue > sharpThreshold
+    // ─────────────────────────────────────────────────────────────────────
+    // Sharp visualizer — actualiza indicador DETECTADO/LIBRE
+    //
+    // Solo se llama cuando activeSharpThreshold > 0 (hay Sharp configurado).
+    // Usa el ADC del pin configurado en HardwareConfig, no un pin local.
+    // ─────────────────────────────────────────────────────────────────────
+
+    private fun updateSharpIndicator(adcRaw: Int) {
+        if (!isAdded || activeSharpThreshold == 0) return
+        b.tvSharpRaw.text = adcRaw.toString()
+        val detected = adcRaw > activeSharpThreshold
         b.tvSharpStatus.text = if (detected) "DETECTADO" else "LIBRE"
-        val color = if (detected) R.color.danger else R.color.ok
-        b.tvSharpStatus.setBackgroundColor(ContextCompat.getColor(requireContext(), color))
+        val bgColor = if (detected) R.color.danger else R.color.ok
+        b.tvSharpStatus.setBackgroundColor(ContextCompat.getColor(requireContext(), bgColor))
         b.tvSharpStatus.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
     }
 
-    // ── Sonar ─────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
+    // Sonar — sesión de diagnóstico ad-hoc (no persiste en HardwareConfig)
+    // ─────────────────────────────────────────────────────────────────────
 
     private fun setupSonar() {
         b.spinnerTrig.adapter = simpleAdapter(SONAR_PIN_LABELS.toList())
         b.spinnerEcho.adapter = simpleAdapter(SONAR_PIN_LABELS.toList())
-        // Default echo to index 1 (GPIO21) to avoid same-pin selection
-        b.spinnerEcho.setSelection(1)
+        b.spinnerEcho.setSelection(1) // default GPIO21
 
         b.btnSonarToggle.setOnClickListener {
             sonarActive = !sonarActive
             if (sonarActive) {
-                // Both spinners use the same SONAR_PIN_VALUES array (no rotation)
                 val trig = SONAR_PIN_VALUES[b.spinnerTrig.selectedItemPosition]
                 val echo = SONAR_PIN_VALUES[b.spinnerEcho.selectedItemPosition]
                 vm.sonarStart(trig, echo)
@@ -167,7 +198,9 @@ class PanelFragment : Fragment() {
         b.btnSonarToggle.backgroundTintList = tintColor(R.color.info)
     }
 
-    // ── LED ───────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
+    // LED — control operacional (no es configuración de hardware)
+    // ─────────────────────────────────────────────────────────────────────
 
     private fun setupLed() {
         b.btnLedOn.setOnClickListener {
@@ -217,29 +250,29 @@ class PanelFragment : Fragment() {
         blinkHandler = null
     }
 
-    // ── GPIO outputs ──────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
+    // GPIO outputs — control operacional directo
+    // ─────────────────────────────────────────────────────────────────────
 
     private fun setupGpioOutputs() {
-        // ── FIX B4: Spinners use their own parallel arrays.
-        //    The adapter list order matches OUTPUT_PIN_VALUES order exactly (no rotation).
         b.spinnerOut1.adapter = simpleAdapter(OUTPUT_PIN_LABELS.toList())
         b.spinnerOut2.adapter = simpleAdapter(OUTPUT_PIN_LABELS.toList())
 
         b.btnOut1High.setOnClickListener {
-            vm.gpioOut(OUTPUT_PIN_VALUES[b.spinnerOut1.selectedItemPosition], 1)
-        }
+            vm.gpioOut(OUTPUT_PIN_VALUES[b.spinnerOut1.selectedItemPosition], 1) }
         b.btnOut1Low.setOnClickListener {
-            vm.gpioOut(OUTPUT_PIN_VALUES[b.spinnerOut1.selectedItemPosition], 0)
-        }
+            vm.gpioOut(OUTPUT_PIN_VALUES[b.spinnerOut1.selectedItemPosition], 0) }
         b.btnOut2High.setOnClickListener {
-            vm.gpioOut(OUTPUT_PIN_VALUES[b.spinnerOut2.selectedItemPosition], 1)
-        }
+            vm.gpioOut(OUTPUT_PIN_VALUES[b.spinnerOut2.selectedItemPosition], 1) }
         b.btnOut2Low.setOnClickListener {
-            vm.gpioOut(OUTPUT_PIN_VALUES[b.spinnerOut2.selectedItemPosition], 0)
-        }
+            vm.gpioOut(OUTPUT_PIN_VALUES[b.spinnerOut2.selectedItemPosition], 0) }
     }
 
-    // ── Buses ─────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
+    // Buses — control operacional (duplicado intencional con ConfigFragment
+    // porque el Panel Industrial permite activar/desactivar buses en tiempo
+    // real durante diagnóstico, sin cambiar HardwareConfig permanente)
+    // ─────────────────────────────────────────────────────────────────────
 
     private fun setupBuses() {
         b.switchI2c.setOnCheckedChangeListener { _, on -> vm.setI2c(on) }
@@ -251,7 +284,9 @@ class PanelFragment : Fragment() {
         }
     }
 
-    // ── Speed slider ──────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
+    // Speed slider — control operacional
+    // ─────────────────────────────────────────────────────────────────────
 
     private fun setupSpeedSlider() {
         b.seekSpeedPanel.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -264,7 +299,9 @@ class PanelFragment : Fragment() {
         })
     }
 
-    // ── State observer ────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
+    // State observer
+    // ─────────────────────────────────────────────────────────────────────
 
     private fun observeState() {
         viewLifecycleOwner.lifecycleScope.launch {
@@ -278,7 +315,12 @@ class PanelFragment : Fragment() {
         }
     }
 
-    // ── Sensor observer ───────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
+    // Sensor data observer — SOLO VISUALIZACIÓN
+    //
+    // Este método actualiza todos los indicadores con datos del firmware.
+    // Para el Sharp: usa activeSharpPin (derivado de HardwareConfig, no local).
+    // ─────────────────────────────────────────────────────────────────────
 
     private fun observeSensors() {
         viewLifecycleOwner.lifecycleScope.launch {
@@ -286,7 +328,7 @@ class PanelFragment : Fragment() {
                 vm.sensorData.collect { s ->
                     if (!isAdded) return@collect
 
-                    // ── ADC ───────────────────────────────────────────────
+                    // ── ADC raw ───────────────────────────────────────────
                     updateAdcRow(adc0, s.adc0)
                     if (s.adc1 < 0) {
                         adc1.tvAdcValue.text = "N/A"
@@ -295,15 +337,15 @@ class PanelFragment : Fragment() {
                         updateAdcRow(adc1, s.adc1)
                     }
 
-                    // ── Sharp GP2Y indicador ──────────────────────────────
-                    // Usa el ADC del pin configurado (0 o 1)
-                    val sharpRaw = if (sharpPin == 0) s.adc0 else s.adc1
-                    if (sharpRaw >= 0) updateSharpIndicator(sharpRaw)
+                    // ── Sharp visualizador ────────────────────────────────
+                    // Pin y umbral vienen de HardwareConfig (observeHwConfig),
+                    // no de variables locales del fragment.
+                    if (activeSharpThreshold > 0) {
+                        val adcRaw = if (activeSharpPin == 0) s.adc0 else s.adc1
+                        if (adcRaw >= 0) updateSharpIndicator(adcRaw)
+                    }
 
-                    // ── Digital pins ──────────────────────────────────────
-                    // ── FIX B2: digitalPins is Map<GPIO_number, value>.
-                    //    Access by key (GPIO number), not by list index.
-                    //    getOrDefault prevents NPE / missing key crashes.
+                    // ── Entradas digitales ────────────────────────────────
                     val d9  = s.digitalPins.getOrDefault(9,  0)
                     val d6  = s.digitalPins.getOrDefault(6,  -1)
                     val d7  = s.digitalPins.getOrDefault(7,  -1)
@@ -318,13 +360,11 @@ class PanelFragment : Fragment() {
                     b.tvDig7St.text  = if (s.i2cEnabled) "I2C on" else "Libre"
                     b.tvDig10St.text = if (s.spiEnabled) "SPI on" else "Libre"
 
-                    // ── DHT22 (temp/hum from SensorData) ─────────────────
-                    // ── FIX B1: s.temp and s.hum now exist in SensorData
+                    // ── DHT22 ─────────────────────────────────────────────
                     b.tvDhtTemp.text = if (s.temp == 0f) "-- °C" else "%.1f °C".format(s.temp)
                     b.tvDhtHum.text  = if (s.hum  == 0f) "-- %"  else "%.1f %%".format(s.hum)
 
-                    // ── Sonar ─────────────────────────────────────────────
-                    // distances[0] is the first sensor from firmware "snr" array
+                    // ── Sonar (datos del firmware) ─────────────────────────
                     val sonarCm = s.distances.getOrElse(0) { -1 }
                     if (sonarCm >= 0) {
                         b.tvSonarVal.text = "$sonarCm cm"
@@ -340,10 +380,7 @@ class PanelFragment : Fragment() {
                         }
                     }
 
-                    // ── LED from firmware state ───────────────────────────
-                    // ledPct comes from batch JSON field "led"
-                    // Only update if user is not dragging the slider
-                    // (seekLed.isPressed check prevents feedback loop)
+                    // ── LED ───────────────────────────────────────────────
                     if (!b.seekLed.isPressed) {
                         b.seekLed.progress = s.ledPct
                         b.tvLedPct.text    = "${s.ledPct}%"
@@ -354,8 +391,6 @@ class PanelFragment : Fragment() {
                     updateChipLabel(b.tvI2cChip, s.i2cEnabled)
                     updateChipLabel(b.tvSpiChip, s.spiEnabled)
 
-                    // Sync switches without re-firing listeners
-                    // Only update if value actually changed to avoid listener churn
                     if (b.switchI2c.isChecked != s.i2cEnabled) b.switchI2c.isChecked = s.i2cEnabled
                     if (b.switchSpi.isChecked != s.spiEnabled)  b.switchSpi.isChecked = s.spiEnabled
 
@@ -371,7 +406,9 @@ class PanelFragment : Fragment() {
         }
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
+    // Helpers
+    // ─────────────────────────────────────────────────────────────────────
 
     private fun updateAdcRow(row: ItemAdcRowBinding, value: Int) {
         row.tvAdcValue.text = value.toString()
@@ -395,22 +432,8 @@ class PanelFragment : Fragment() {
             requireContext(), if (enabled) R.color.ok else R.color.txt2))
     }
 
-    /**
-     * Creates a simple spinner adapter with styled dark-theme text.
-     * The adapter list order matches the source [labels] list with optional [startIndex] rotation.
-     *
-     * ── FIX B4: The parallel value array MUST be rotated the same way as labels
-     *    when startIndex != 0. The calling code is responsible for this.
-     *    For OUTPUT spinners we DON'T rotate (startIndex=0) so the arrays stay aligned.
-     */
-    private fun simpleAdapter(labels: List<String>, startIndex: Int = 0): ArrayAdapter<String> {
-        val ordered = if (startIndex == 0) labels
-                      else labels.drop(startIndex) + labels.take(startIndex)
-        return object : ArrayAdapter<String>(
-            requireContext(),
-            android.R.layout.simple_spinner_item,
-            ordered
-        ) {
+    private fun simpleAdapter(labels: List<String>): ArrayAdapter<String> =
+        object : ArrayAdapter<String>(requireContext(), android.R.layout.simple_spinner_item, labels) {
             override fun getView(pos: Int, v: View?, parent: ViewGroup): View =
                 super.getView(pos, v, parent).also { root ->
                     (root as? TextView)?.setTextColor(
@@ -423,15 +446,14 @@ class PanelFragment : Fragment() {
                         setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.bg2))
                     }
                 }
-        }.also {
-            it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        }
-    }
+        }.also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
 
     private fun tintColor(colorRes: Int) =
         ColorStateList.valueOf(ContextCompat.getColor(requireContext(), colorRes))
 
-    // ── Cleanup ───────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
+    // Cleanup
+    // ─────────────────────────────────────────────────────────────────────
 
     override fun onDestroyView() {
         super.onDestroyView()

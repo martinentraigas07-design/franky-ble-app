@@ -47,8 +47,9 @@ class RobotViewModel(val ble: BleManager) : ViewModel() {
     fun sendFast(cmd: String) = ble.sendFast(cmd)
 
     // ── Trim de motores — calibración de dirección recta ─────────────────
-    // trimL/trimR: -100..+100. 0=sin corrección.
-    // TRIM:trimL,trimR → firmware ajusta velocidad de cada motor
+    // trimL/trimR: -100..+100 (0 = sin corrección).
+    // El firmware aplica el factor de escala a la velocidad de cada motor.
+    // Llamado desde GamepadFragment al mover los sliders de calibración.
     fun sendMotorTrim(trimL: Int, trimR: Int) =
         ble.sendFast("TRIM:${trimL.coerceIn(-100,100)},${trimR.coerceIn(-100,100)}")
 

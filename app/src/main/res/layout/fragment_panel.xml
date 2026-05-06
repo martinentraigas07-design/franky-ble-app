@@ -462,10 +462,10 @@
             </LinearLayout>
 
             <!-- ═══════════════════════════════════════════════════
-                 CARD 3B — SENSOR IR SHARP GP2Y0A21
-                 Modo digital: umbral ADC configurable → DETECTADO / LIBRE
-                 El GP2Y0A21 tiene zona no lineal <15cm; se trabaja como
-                 sensor de presencia: ADC > threshold → objeto detectado
+                 CARD 3B — SENSOR IR SHARP GP2Y0A21 (SOLO LECTURA)
+                 El Panel VISUALIZA la config establecida en Configuración ⚙.
+                 Para cambiar pin, umbral o tipo de sensor: ir a Configuración.
+                 Visible solo cuando HardwareConfig tiene un slot Sharp activo.
                  ═══════════════════════════════════════════════════ -->
             <LinearLayout
                 android:id="@+id/cardSharp"
@@ -474,58 +474,10 @@
                 android:background="@drawable/bg_card"
                 android:orientation="vertical"
                 android:padding="14dp"
-                android:layout_marginBottom="12dp">
+                android:layout_marginBottom="12dp"
+                android:visibility="gone">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="SENSOR IR SHARP GP2Y0A21"
-                    android:textColor="@color/acc2"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.08"
-                    android:layout_marginBottom="10dp" />
-
-                <!-- Pin selector -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="8dp">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Pin ADC:"
-                        android:textColor="@color/txt2"
-                        android:textSize="12sp"
-                        android:layout_marginEnd="8dp" />
-                    <RadioGroup
-                        android:id="@+id/rgSharpPin"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="horizontal">
-                        <RadioButton
-                            android:id="@+id/rbSharpAdc0"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="ADC0 (GPIO0)"
-                            android:textColor="@color/txt"
-                            android:textSize="12sp"
-                            android:checked="true"
-                            android:layout_marginEnd="12dp" />
-                        <RadioButton
-                            android:id="@+id/rbSharpAdc1"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="ADC1 (GPIO1)"
-                            android:textColor="@color/txt"
-                            android:textSize="12sp" />
-                    </RadioGroup>
-                </LinearLayout>
-
-                <!-- Threshold slider -->
+                <!-- Título + badge "SOLO LECTURA" -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -533,33 +485,51 @@
                     android:gravity="center_vertical"
                     android:layout_marginBottom="10dp">
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Umbral:"
-                        android:textColor="@color/txt2"
-                        android:textSize="12sp"
-                        android:layout_marginEnd="8dp" />
-                    <SeekBar
-                        android:id="@+id/seekSharpThresh"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:max="4095"
-                        android:progress="2000"
-                        android:progressTint="@color/acc"
-                        android:thumbTint="@color/acc2" />
+                        android:text="SENSOR IR SHARP GP2Y0A21"
+                        android:textColor="@color/acc2"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.08" />
                     <TextView
-                        android:id="@+id/tvSharpThresh"
-                        android:layout_width="45dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="2000"
-                        android:textColor="@color/txt"
-                        android:textSize="11sp"
-                        android:fontFamily="monospace"
-                        android:gravity="end" />
+                        android:text="Config en ⚙"
+                        android:textColor="@color/txt2"
+                        android:textSize="10sp"
+                        android:paddingStart="6dp" android:paddingEnd="6dp"
+                        android:paddingTop="2dp"  android:paddingBottom="2dp"
+                        android:background="@drawable/bg_badge" />
                 </LinearLayout>
 
-                <!-- Detection indicator -->
+                <!-- Umbral activo (solo lectura — viene de HardwareConfig) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="10dp">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Umbral configurado:"
+                        android:textColor="@color/txt2"
+                        android:textSize="12sp" />
+                    <TextView
+                        android:id="@+id/tvSharpThresh"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="--"
+                        android:textColor="@color/txt"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:fontFamily="monospace" />
+                </LinearLayout>
+
+                <!-- Indicador de detección en tiempo real -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -598,19 +568,9 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Modo digital: ADC &gt; umbral → DETECTADO. Rango útil ~15–80 cm. Zona &lt;15 cm no lineal."
+                    android:text="Modo digital: ADC &gt; umbral → DETECTADO. Rango útil ~15–80 cm."
                     android:textColor="@color/txt2"
                     android:textSize="11sp"
-                    android:layout_marginTop="8dp" />
-
-                <!-- Apply threshold button -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnSharpApply"
-                    style="@style/FrankyBtn.Orange"
-                    android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:text="↑ Aplicar umbral al robot"
-                    android:textSize="12sp"
                     android:layout_marginTop="8dp" />
 
             </LinearLayout>

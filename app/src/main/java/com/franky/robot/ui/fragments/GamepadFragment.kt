@@ -204,10 +204,11 @@ class GamepadFragment : Fragment() {
         b.btnStop.setOnClickListener { resetCommands() }
     }
 
-    // Envía trim al firmware: TRIM:trimL,trimR
-    // El firmware ajusta la velocidad efectiva de cada motor al aplicar trim
+    // Envía trim al firmware a través del método correcto del ViewModel.
+    // Respeta MVVM: la lógica de construcción del comando y el coerceIn
+    // viven en RobotViewModel.sendMotorTrim(), no en el Fragment.
     private fun sendTrim() {
-        vm.sendFast("TRIM:$trimL,$trimR")
+        vm.sendMotorTrim(trimL, trimR)
     }
 
     // Aplica el factor de trim a un valor de velocidad (-255..255)
