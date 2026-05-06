@@ -26,6 +26,14 @@ class GamepadFragment : Fragment() {
     private var lastDpadCmd = "S"
     private var lastJoyCmd  = "S"
 
+    // ── Trim por motor — permite calibrar la dirección recta ──────────────
+    // trimL y trimR son factores de escala en rango -100..+100
+    // trimL = 0 → sin corrección | trimL > 0 → motor L más rápido
+    // La velocidad efectiva aplicada = baseSpeed * (1 + trim/100)
+    // Enviado al firmware como TRIM:trimL,trimR
+    private var trimL = 0   // -100..+100 (centro=0)
+    private var trimR = 0
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -43,15 +51,12 @@ class GamepadFragment : Fragment() {
         b.btnBack.setOnClickListener { vm.stop(); findNavController().popBackStack() }
     }
 
-    // ── Toolbar ────────────────────────────────────────────────────────────
-
     private fun configureToolbar() {
         b.toolbar.tbSubtitle.text = "Control Manual"
-        b.toolbar.tbBadge.text = "GAMEPAD"
+        b.toolbar.tbBadge.text    = "GAMEPAD"
     }
 
     // ── Mode selector ──────────────────────────────────────────────────────
-
     private fun setupModeButtons() {
         applyModeStyle(dpadActive = true)
         b.btnModeDpad.setOnClickListener {
@@ -71,22 +76,18 @@ class GamepadFragment : Fragment() {
     private fun applyModeStyle(dpadActive: Boolean) {
         val ctx = requireContext()
         b.btnModeDpad.backgroundTintList = android.content.res.ColorStateList.valueOf(
-            ContextCompat.getColor(ctx, if (dpadActive) R.color.acc else R.color.bg3)
-        )
-        b.btnModeJoy.backgroundTintList = android.content.res.ColorStateList.valueOf(
-            ContextCompat.getColor(ctx, if (dpadActive) R.color.bg3 else R.color.acc)
-        )
+            ContextCompat.getColor(ctx, if (dpadActive) R.color.acc else R.color.bg3))
+        b.btnModeJoy.backgroundTintList  = android.content.res.ColorStateList.valueOf(
+            ContextCompat.getColor(ctx, if (dpadActive) R.color.bg3 else R.color.acc))
     }
 
     private fun resetCommands() {
         activePointers.clear()
-        lastDpadCmd = "S"
-        lastJoyCmd  = "S"
+        lastDpadCmd = "S"; lastJoyCmd = "S"
         vm.stop()
     }
 
     // ── D-PAD ──────────────────────────────────────────────────────────────
-
     private fun setupDpad() {
         val tl = View.OnTouchListener { v, e ->
             val dir = when (v.id) {
@@ -142,15 +143,17 @@ class GamepadFragment : Fragment() {
     }
 
     // ── Joystick ───────────────────────────────────────────────────────────
-
     private fun setupJoystick() {
         var lastJoySentMs = 0L
         b.joystick.onMove = { left, right ->
-            val cmd = "DRIVE:$left,$right"
+            // Aplicar trim a la salida del joystick
+            val lTrimmed = applyTrim(left, trimL)
+            val rTrimmed = applyTrim(right, trimR)
+            val cmd = "DRIVE:$lTrimmed,$rTrimmed"
             val now = System.currentTimeMillis()
-            // 20Hz cap: prevents write channel flood during continuous joystick rotation
             if (cmd != lastJoyCmd && (now - lastJoySentMs) >= 50L) {
-                lastJoyCmd = cmd; lastJoySentMs = now; vm.drive(left, right)
+                lastJoyCmd = cmd; lastJoySentMs = now
+                vm.drive(lTrimmed, rTrimmed)
             }
         }
         b.joystick.onStop = {
@@ -158,9 +161,9 @@ class GamepadFragment : Fragment() {
         }
     }
 
-    // ── Speed & Turbo ──────────────────────────────────────────────────────
-
+    // ── Speed & Trim ───────────────────────────────────────────────────────
     private fun setupSpeedControls() {
+        // Velocidad base global
         b.seekSpeed.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar?, p: Int, fromUser: Boolean) {
                 b.tvSpeedPct.text = "${(p * 100f / 255f).roundToInt()}%"
@@ -169,8 +172,50 @@ class GamepadFragment : Fragment() {
             override fun onStartTrackingTouch(sb: SeekBar?) {}
             override fun onStopTrackingTouch(sb: SeekBar?) {}
         })
-        b.btnTurbo.setOnClickListener { b.seekSpeed.progress = 255; vm.setSpeed(255) }
-        b.btnStop.setOnClickListener  { resetCommands() }
+
+        // Trim motor L — seekbar va de 0..200, centro=100, trim= progress-100
+        b.seekTrimL.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar?, p: Int, fromUser: Boolean) {
+                trimL = p - 100
+                b.tvTrimL.text = if (trimL >= 0) "+$trimL" else "$trimL"
+                if (fromUser) sendTrim()
+            }
+            override fun onStartTrackingTouch(sb: SeekBar?) {}
+            override fun onStopTrackingTouch(sb: SeekBar?) {}
+        })
+
+        // Trim motor R
+        b.seekTrimR.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar?, p: Int, fromUser: Boolean) {
+                trimR = p - 100
+                b.tvTrimR.text = if (trimR >= 0) "+$trimR" else "$trimR"
+                if (fromUser) sendTrim()
+            }
+            override fun onStartTrackingTouch(sb: SeekBar?) {}
+            override fun onStopTrackingTouch(sb: SeekBar?) {}
+        })
+
+        // Turbo: velocidad base 255 + reset trim
+        b.btnTurbo.setOnClickListener {
+            b.seekSpeed.progress = 255
+            vm.setSpeed(255)
+        }
+
+        b.btnStop.setOnClickListener { resetCommands() }
+    }
+
+    // Envía trim al firmware: TRIM:trimL,trimR
+    // El firmware ajusta la velocidad efectiva de cada motor al aplicar trim
+    private fun sendTrim() {
+        vm.sendFast("TRIM:$trimL,$trimR")
+    }
+
+    // Aplica el factor de trim a un valor de velocidad (-255..255)
+    // trim en rango -100..+100: trim>0 amplifica, trim<0 reduce
+    private fun applyTrim(speed: Int, trim: Int): Int {
+        if (trim == 0 || speed == 0) return speed
+        val factor = 1f + (trim / 100f)
+        return (speed * factor).toInt().coerceIn(-255, 255)
     }
 
     override fun onDestroyView() {

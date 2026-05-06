@@ -25,12 +25,9 @@ sealed class UiEvent {
 class RobotViewModel(val ble: BleManager) : ViewModel() {
 
     val connectionStatus: StateFlow<ConnectionStatus> = ble.connectionStatus
-    val configResult:     StateFlow<String?>           = ble.configResult
+    val configResult:     StateFlow<String?>          = ble.configResult
     val sensorData:       StateFlow<SensorData>       = ble.sensorData
-    val stateData:        StateFlow<String>            = ble.stateData
-
-    // Expose firmware CFG_OK / CFG_ERR events from BleManager
-    
+    val stateData:        StateFlow<String>           = ble.stateData
 
     private val _events     = MutableSharedFlow<UiEvent>()
     val uiEvents: SharedFlow<UiEvent> = _events
@@ -43,26 +40,29 @@ class RobotViewModel(val ble: BleManager) : ViewModel() {
 
     // ── Movement ──────────────────────────────────────────────────────────
     fun drive(left: Int, right: Int) =
-    ble.sendDrive("DRIVE:${left.coerceIn(-255,255)},${right.coerceIn(-255,255)}")
-    fun stop() = ble.sendDrive("DRIVE:0,0")
-    fun eStop() {
-    ble.sendDrive("DRIVE:0,0")
-    ble.sendFast("MODE:MANUAL")
-}
+        ble.sendDrive("DRIVE:${left.coerceIn(-255,255)},${right.coerceIn(-255,255)}")
+    fun stop()  = ble.sendDrive("DRIVE:0,0")
+    fun eStop() { ble.sendDrive("DRIVE:0,0"); ble.sendFast("MODE:MANUAL") }
     fun setSpeed(pwm: Int)    = ble.sendFast("SPD:${pwm.coerceIn(0,255)}")
     fun sendFast(cmd: String) = ble.sendFast(cmd)
 
+    // ── Trim de motores — calibración de dirección recta ─────────────────
+    // trimL/trimR: -100..+100. 0=sin corrección.
+    // TRIM:trimL,trimR → firmware ajusta velocidad de cada motor
+    fun sendMotorTrim(trimL: Int, trimR: Int) =
+        ble.sendFast("TRIM:${trimL.coerceIn(-100,100)},${trimR.coerceIn(-100,100)}")
+
     // ── LED ───────────────────────────────────────────────────────────────
-    fun ledOn()              = ble.sendFast("LED:ON")
-    fun ledOff()             = ble.sendFast("LED:OFF")
-    fun ledBlink()           = ble.sendFast("LED:BLINK")
-    fun ledPwm(pct: Int)     = ble.sendFast("LED:PWM:${pct.coerceIn(0,100)}")
+    fun ledOn()          = ble.sendFast("LED:ON")
+    fun ledOff()         = ble.sendFast("LED:OFF")
+    fun ledBlink()       = ble.sendFast("LED:BLINK")
+    fun ledPwm(pct: Int) = ble.sendFast("LED:PWM:${pct.coerceIn(0,100)}")
 
     // ── GPIO ──────────────────────────────────────────────────────────────
     fun gpioOut(pin: Int, value: Int) = ble.sendFast("GPIO:$pin:${if (value!=0) 1 else 0}")
     fun gpioRead(pin: Int)            = ble.sendFast("GPIO_READ:$pin")
 
-    // ── Sonar ─────────────────────────────────────────────────────────────
+    // ── Sonar (Panel Industrial) ──────────────────────────────────────────
     fun sonarStart(trig: Int, echo: Int) = ble.sendFast("SONAR:$trig,$echo")
     fun sonarStop()                      = ble.sendFast("SONAR:STOP")
 
@@ -71,7 +71,9 @@ class RobotViewModel(val ble: BleManager) : ViewModel() {
     fun setSpi(on: Boolean) = ble.sendFast("SPI:${if (on) 1 else 0}")
     fun scanI2c()           = ble.sendFast("I2C_SCAN")
 
-    // ── Hardware config ───────────────────────────────────────────────────
+    // ── Hardware config (sensores + buses) ────────────────────────────────
+    // Valida y envía la config completa al firmware.
+    // Se re-envía automáticamente al reconectar BLE.
     fun applyHwConfig(cfg: HardwareConfig) {
         val err = cfg.validate()
         if (err != null) {
@@ -79,22 +81,23 @@ class RobotViewModel(val ble: BleManager) : ViewModel() {
             return
         }
         _hwConfig.value = cfg
-        // Use reliable write so we get GATT ACK; CFG_OK/CFG_ERR event comes via BLE notify
+        // Primero enviar estado de buses (I2C/SPI) por separado para compatibilidad
+        ble.sendFast("I2C:${if (cfg.i2cEnabled) 1 else 0}")
+        ble.sendFast("SPI:${if (cfg.spiEnabled) 1 else 0}")
+        // Luego enviar la config completa de sensores
         viewModelScope.launch { ble.sendReliable(cfg.toBleCmd()) }
     }
 
     // ── Sumo ──────────────────────────────────────────────────────────────
-    fun applySumoConfig(cfg: SumoConfig) { _sumoConfig.value = cfg; ble.sendFast(cfg.toBleCmd()) }
-    fun sumoStop()  {
-        // SUMO:STOP → firmware para motores + apaga LED + vuelve a IDLE
+    fun applySumoConfig(cfg: SumoConfig) {
+        _sumoConfig.value = cfg
+        ble.sendFast(cfg.toBleCmd())
+    }
+
+    fun sumoStop() {
         ble.sendFast("SUMO:STOP")
         ble.sendFast("LED:OFF")
     }
-
-    // sharpThreshold: envía el umbral ADC del sensor Sharp al firmware
-    // El firmware lo usa en modo SUMO autónomo para detectar oponente
-    fun setSharpThreshold(pin: Int, threshold: Int) =
-        ble.sendFast("CONFIG:SHARP_PIN=$pin,SHARP_THRESH=$threshold")
 
     // ── Blockly program ───────────────────────────────────────────────────
     fun sendXml(xml: String) {
@@ -110,21 +113,17 @@ class RobotViewModel(val ble: BleManager) : ViewModel() {
     // ── Connection ────────────────────────────────────────────────────────
     fun disconnect() = ble.disconnect()
 
-    // ── Auto-resync on reconnect ──────────────────────────────────────────
-    // When BLE reconnects, firmware has reset to factory defaults.
-    // We re-send the last HardwareConfig so sensors/buses are correctly
-    // configured without requiring the user to open ConfigFragment again.
-    // SumoConfig is NOT re-sent automatically — sumo must be explicitly started.
+    // ── Auto-resync al reconectar ─────────────────────────────────────────
     init {
         viewModelScope.launch {
             connectionStatus.collect { status ->
                 if (status == ConnectionStatus.CONNECTED) {
                     val cfg = _hwConfig.value
-                    // Only re-send if user has changed from defaults
                     if (cfg != HardwareConfig()) {
-                        // Small delay so services are fully discovered before we write
                         kotlinx.coroutines.delay(800)
                         if (connectionStatus.value == ConnectionStatus.CONNECTED) {
+                            ble.sendFast("I2C:${if (cfg.i2cEnabled) 1 else 0}")
+                            ble.sendFast("SPI:${if (cfg.spiEnabled) 1 else 0}")
                             ble.sendReliable(cfg.toBleCmd())
                         }
                     }
@@ -133,7 +132,7 @@ class RobotViewModel(val ble: BleManager) : ViewModel() {
         }
     }
 
-    // ── XML → JSON conversion ─────────────────────────────────────────────
+    // ── XML → JSON (Blockly) ──────────────────────────────────────────────
     private fun xmlToJson(xml: String): String? = try {
         val steps = mutableListOf<String>()
         parseXmlBlocks(xml, steps)
@@ -149,22 +148,20 @@ class RobotViewModel(val ble: BleManager) : ViewModel() {
             val type = xml.substring(ts, te); pos = te + 1
             val be = findBlockEnd(xml, bt)
             when (type) {
-                "franky_adelante"     -> out.add("{\"t\":\"F\"}")
-                "franky_atras"        -> out.add("{\"t\":\"B\"}")
-                "franky_izquierda"    -> out.add("{\"t\":\"L\"}")
-                "franky_derecha"      -> out.add("{\"t\":\"R\"}")
-                "franky_stop"         -> out.add("{\"t\":\"S\"}")
-                "franky_velocidad"    -> out.add("{\"t\":\"spd\",\"v\":${field(xml,bt,be,"SPD").toIntOrNull()?:200}}")
-                "franky_led_on"       -> out.add("{\"t\":\"led\",\"v\":\"ON\"}")
-                "franky_led_off"      -> out.add("{\"t\":\"led\",\"v\":\"OFF\"}")
-                // [FIX] franky_led_pwm faltaba — el bloque Blockly existía pero se ignoraba
-                "franky_led_pwm"      -> out.add("{\"t\":\"led\",\"v\":\"PWM\",\"p\":${field(xml,bt,be,"PCT").toIntOrNull()?:50}}")
-                "franky_esperar"      -> out.add("{\"t\":\"wait\",\"ms\":${field(xml,bt,be,"MS").toLongOrNull()?:500}}")
-                "franky_gpio_out"     -> out.add("{\"t\":\"gpio\",\"pin\":${field(xml,bt,be,"PIN").toIntOrNull()?:9},\"val\":${field(xml,bt,be,"VAL").toIntOrNull()?:0}}")
-                // [FIX] I2C y SPI habilitables desde Blockly
+                "franky_adelante"      -> out.add("{\"t\":\"F\"}")
+                "franky_atras"         -> out.add("{\"t\":\"B\"}")
+                "franky_izquierda"     -> out.add("{\"t\":\"L\"}")
+                "franky_derecha"       -> out.add("{\"t\":\"R\"}")
+                "franky_stop"          -> out.add("{\"t\":\"S\"}")
+                "franky_velocidad"     -> out.add("{\"t\":\"spd\",\"v\":${field(xml,bt,be,"SPD").toIntOrNull()?:200}}")
+                "franky_led_on"        -> out.add("{\"t\":\"led\",\"v\":\"ON\"}")
+                "franky_led_off"       -> out.add("{\"t\":\"led\",\"v\":\"OFF\"}")
+                "franky_led_pwm"       -> out.add("{\"t\":\"led\",\"v\":\"PWM\",\"p\":${field(xml,bt,be,"PCT").toIntOrNull()?:50}}")
+                "franky_esperar"       -> out.add("{\"t\":\"wait\",\"ms\":${field(xml,bt,be,"MS").toLongOrNull()?:500}}")
+                "franky_gpio_out"      -> out.add("{\"t\":\"gpio\",\"pin\":${field(xml,bt,be,"PIN").toIntOrNull()?:9},\"val\":${field(xml,bt,be,"VAL").toIntOrNull()?:0}}")
                 "franky_i2c_habilitar" -> out.add("{\"t\":\"i2c\",\"v\":1}")
                 "franky_spi_habilitar" -> out.add("{\"t\":\"spi\",\"v\":1}")
-                "controls_repeat_ext" -> {
+                "controls_repeat_ext"  -> {
                     val n = (field(xml,bt,be,"TIMES").toIntOrNull()?:1).coerceIn(1,20)
                     val inner = extractStatement(if(be>0) xml.substring(bt,be+8) else xml.substring(bt), "DO")
                     if (inner.isNotEmpty()) repeat(n) { if(out.size<max) parseXmlBlocks(inner,out,max) }

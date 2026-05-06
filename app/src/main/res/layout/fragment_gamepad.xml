@@ -1,236 +1,214 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  fragment_gamepad.xml — Control manual FRANKY 4.0
+  Mejoras v3.4:
+  - Layout raíz con descendantFocusability=blocksDescendants para evitar scroll
+    accidental al usar D-PAD o joystick
+  - Área de control con fillViewport para no desplazarse
+  - Sliders L y R independientes para calibración de dirección recta
+  - Slider global de velocidad base mantenido (ahora llamado "Base")
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:descendantFocusability="blocksDescendants">
 
-    <!-- Toolbar -->
-    <include
-        layout="@layout/view_toolbar"
-        android:id="@+id/toolbar" />
+    <include layout="@layout/view_toolbar" android:id="@+id/toolbar" />
 
-    <!-- Mode tabs — D-PAD / JOYSTICK -->
+    <!-- Mode tabs -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/bg2"
         android:orientation="horizontal"
-        android:paddingStart="14dp"
-        android:paddingEnd="14dp"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp">
-
+        android:paddingStart="14dp" android:paddingEnd="14dp"
+        android:paddingTop="6dp"   android:paddingBottom="6dp">
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnModeDpad"
             style="@style/FrankyBtn.Orange"
-            android:layout_width="0dp"
-            android:layout_height="38dp"
-            android:layout_weight="1"
-            android:text="D-PAD"
-            android:textSize="12sp"
-            android:layout_marginEnd="5dp" />
-
+            android:layout_width="0dp" android:layout_height="36dp"
+            android:layout_weight="1" android:text="D-PAD"
+            android:textSize="12sp" android:layout_marginEnd="5dp"/>
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnModeJoy"
             style="@style/FrankyBtn.Dark"
-            android:layout_width="0dp"
-            android:layout_height="38dp"
-            android:layout_weight="1"
-            android:text="JOYSTICK"
-            android:textSize="12sp"
-            android:layout_marginStart="5dp" />
+            android:layout_width="0dp" android:layout_height="36dp"
+            android:layout_weight="1" android:text="JOYSTICK"
+            android:textSize="12sp" android:layout_marginStart="5dp"/>
     </LinearLayout>
 
-    <!-- Control area — fills available height -->
+    <!-- Control area — weight=1, NO scroll, touch events no propagate -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:focusable="false"
+        android:focusableInTouchMode="false">
 
-        <!-- ── D-PAD panel ───────────────────────────────────────────── -->
+        <!-- D-PAD panel -->
         <LinearLayout
             android:id="@+id/frameDpad"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:gravity="center">
+            android:gravity="center"
+            android:focusable="false">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="280dp"
-                android:layout_height="280dp">
+                android:layout_height="280dp"
+                android:focusable="false">
 
-                <!-- UP -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnU"
                     style="@style/FrankyBtn.Dpad"
-                    android:layout_width="88dp"
-                    android:layout_height="88dp"
-                    android:text="▲"
-                    android:textSize="30sp"
+                    android:layout_width="88dp" android:layout_height="88dp"
+                    android:text="▲" android:textSize="30sp"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" />
+                    app:layout_constraintEnd_toEndOf="parent"/>
 
-                <!-- DOWN -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnD"
                     style="@style/FrankyBtn.Dpad"
-                    android:layout_width="88dp"
-                    android:layout_height="88dp"
-                    android:text="▼"
-                    android:textSize="30sp"
+                    android:layout_width="88dp" android:layout_height="88dp"
+                    android:text="▼" android:textSize="30sp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" />
+                    app:layout_constraintEnd_toEndOf="parent"/>
 
-                <!-- LEFT -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnL"
                     style="@style/FrankyBtn.Dpad"
-                    android:layout_width="88dp"
-                    android:layout_height="88dp"
-                    android:text="◀"
-                    android:textSize="30sp"
+                    android:layout_width="88dp" android:layout_height="88dp"
+                    android:text="◀" android:textSize="30sp"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent" />
+                    app:layout_constraintStart_toStartOf="parent"/>
 
-                <!-- CENTER STOP -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnDpadStop"
                     style="@style/FrankyBtn.Dpad.Stop"
-                    android:layout_width="88dp"
-                    android:layout_height="88dp"
-                    android:text="■"
-                    android:textSize="28sp"
+                    android:layout_width="88dp" android:layout_height="88dp"
+                    android:text="■" android:textSize="28sp"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" />
+                    app:layout_constraintEnd_toEndOf="parent"/>
 
-                <!-- RIGHT -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnR"
                     style="@style/FrankyBtn.Dpad"
-                    android:layout_width="88dp"
-                    android:layout_height="88dp"
-                    android:text="▶"
-                    android:textSize="30sp"
+                    android:layout_width="88dp" android:layout_height="88dp"
+                    android:text="▶" android:textSize="30sp"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" />
-
+                    app:layout_constraintEnd_toEndOf="parent"/>
             </androidx.constraintlayout.widget.ConstraintLayout>
-
         </LinearLayout>
 
-        <!-- ── JOYSTICK panel ────────────────────────────────────────── -->
+        <!-- JOYSTICK panel -->
         <FrameLayout
             android:id="@+id/frameJoy"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:visibility="gone">
-
+            android:visibility="gone"
+            android:focusable="false">
             <com.franky.robot.ui.components.JoystickView
                 android:id="@+id/joystick"
                 android:layout_width="290dp"
                 android:layout_height="290dp"
-                android:layout_gravity="center" />
-
+                android:layout_gravity="center"/>
         </FrameLayout>
-
     </FrameLayout>
 
-    <!-- ── Speed + action buttons ─────────────────────────────────────── -->
+    <!-- Bottom bar — velocidades + botones -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/bg_card"
         android:orientation="vertical"
-        android:paddingStart="14dp"
-        android:paddingEnd="14dp"
-        android:paddingTop="12dp"
-        android:paddingBottom="12dp">
+        android:paddingStart="14dp" android:paddingEnd="14dp"
+        android:paddingTop="10dp"  android:paddingBottom="10dp">
 
-        <!-- Speed row -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="10dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="PWM"
-                android:textColor="@color/txt2"
-                android:textSize="12sp"
-                android:layout_marginEnd="8dp"
-                android:fontFamily="sans-serif-medium" />
-
-            <SeekBar
-                android:id="@+id/seekSpeed"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:max="255"
-                android:progress="200"
-                android:progressTint="@color/acc"
-                android:thumbTint="@color/acc2" />
-
-            <TextView
-                android:id="@+id/tvSpeedPct"
-                android:layout_width="40dp"
-                android:layout_height="wrap_content"
-                android:text="78%"
-                android:textColor="@color/txt"
-                android:textSize="13sp"
-                android:fontFamily="monospace"
-                android:gravity="end" />
+        <!-- Velocidad base (global) -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:layout_marginBottom="6dp">
+            <TextView android:layout_width="40dp" android:layout_height="wrap_content"
+                android:text="Base" android:textColor="@color/txt2"
+                android:textSize="11sp" android:fontFamily="sans-serif-medium"/>
+            <SeekBar android:id="@+id/seekSpeed"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:max="255" android:progress="200"
+                android:progressTint="@color/acc" android:thumbTint="@color/acc2"/>
+            <TextView android:id="@+id/tvSpeedPct"
+                android:layout_width="36dp" android:layout_height="wrap_content"
+                android:text="78%" android:textColor="@color/txt"
+                android:textSize="12sp" android:fontFamily="monospace" android:gravity="end"/>
         </LinearLayout>
 
-        <!-- Turbo + Stop buttons -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+        <!-- Trim motor izquierdo (L) -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:layout_marginBottom="4dp">
+            <TextView android:layout_width="40dp" android:layout_height="wrap_content"
+                android:text="◀ L" android:textColor="@color/info"
+                android:textSize="11sp" android:fontFamily="monospace"/>
+            <SeekBar android:id="@+id/seekTrimL"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:max="200" android:progress="100"
+                android:progressTint="@color/info" android:thumbTint="@color/acc2"/>
+            <TextView android:id="@+id/tvTrimL"
+                android:layout_width="36dp" android:layout_height="wrap_content"
+                android:text="0" android:textColor="@color/info"
+                android:textSize="11sp" android:fontFamily="monospace" android:gravity="end"/>
+        </LinearLayout>
 
+        <!-- Trim motor derecho (R) -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+            <TextView android:layout_width="40dp" android:layout_height="wrap_content"
+                android:text="R ▶" android:textColor="@color/ok"
+                android:textSize="11sp" android:fontFamily="monospace"/>
+            <SeekBar android:id="@+id/seekTrimR"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:max="200" android:progress="100"
+                android:progressTint="@color/ok" android:thumbTint="@color/acc2"/>
+            <TextView android:id="@+id/tvTrimR"
+                android:layout_width="36dp" android:layout_height="wrap_content"
+                android:text="0" android:textColor="@color/ok"
+                android:textSize="11sp" android:fontFamily="monospace" android:gravity="end"/>
+        </LinearLayout>
+
+        <!-- Turbo + Stop -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal">
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnTurbo"
                 style="@style/FrankyBtn.Green"
-                android:layout_width="0dp"
-                android:layout_height="54dp"
-                android:layout_weight="1"
-                android:text="⚡ TURBO"
-                android:textSize="14sp"
-                android:layout_marginEnd="6dp" />
-
+                android:layout_width="0dp" android:layout_height="50dp"
+                android:layout_weight="1" android:text="⚡ TURBO"
+                android:textSize="13sp" android:layout_marginEnd="6dp"/>
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnStop"
                 style="@style/FrankyBtn.Red"
-                android:layout_width="0dp"
-                android:layout_height="54dp"
-                android:layout_weight="1"
-                android:text="■ STOP"
-                android:textSize="14sp"
-                android:layout_marginStart="6dp" />
+                android:layout_width="0dp" android:layout_height="50dp"
+                android:layout_weight="1" android:text="■ STOP"
+                android:textSize="13sp" android:layout_marginStart="6dp"/>
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Back -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnBack"
         style="@style/FrankyBtn.Dark"
-        android:layout_width="match_parent"
-        android:layout_height="44dp"
-        android:text="⌂  Volver"
-        android:textSize="13sp"
-        android:layout_marginStart="14dp"
-        android:layout_marginEnd="14dp"
-        android:layout_marginTop="6dp"
-        android:layout_marginBottom="8dp" />
+        android:layout_width="match_parent" android:layout_height="40dp"
+        android:text="⌂  Volver" android:textSize="13sp"
+        android:layout_marginStart="14dp" android:layout_marginEnd="14dp"
+        android:layout_marginTop="4dp" android:layout_marginBottom="6dp"/>
 
 </LinearLayout>

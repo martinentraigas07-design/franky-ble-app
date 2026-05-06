@@ -42,6 +42,7 @@ class SumoFragment : Fragment() {
         b.toolbar.tbBadge.text    = "SUMO"
 
         setupSliders()
+        showSensorSummary()
 
         b.btnSumoApply.setOnClickListener { sendConfig() }
 
@@ -62,6 +63,27 @@ class SumoFragment : Fragment() {
 
         observeState()
         observeSensors()
+
+        // Mostrar resumen de config de sensores activa
+        b.tvSensorSummary.text = vm.hwConfig.value.summary()
+
+        // Actualizar si la config cambia mientras está en esta pantalla
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.hwConfig.collect { cfg ->
+                    if (!isAdded) return@collect
+                    b.tvSensorSummary.text = cfg.summary()
+                }
+            }
+        }
+    }
+
+    // ── Resumen de config de sensores activa ──────────────────────────────
+    // Muestra qué sensores están configurados sin necesidad de ir a Configuración.
+    // El sumo funciona igual sin sensores (búsqueda ciega).
+    private fun showSensorSummary() {
+        val cfg = vm.hwConfig.value
+        b.tvSumoStatus.text = "Sensores: ${cfg.summary()}"
     }
 
     // ── Safety countdown — 5 segundos reglamentarios ──────────────────────

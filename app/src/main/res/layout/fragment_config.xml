@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  fragment_config.xml — Configuración completa de hardware FRANKY 4.0
+  Todos los IDs aquí deben coincidir exactamente con ConfigFragment.kt
+  Tipos de sensor soportados: HC-SR04, Sharp GP2Y0A21, JS40F, Línea ADC, Línea Digital
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -21,34 +26,21 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingStart="14dp" android:paddingEnd="14dp"
-            android:paddingTop="14dp"   android:paddingBottom="24dp">
+            android:paddingTop="14dp"  android:paddingBottom="24dp">
 
-            <!-- ADC availability banner -->
+            <!-- ═══ BANNER ADC ═══ -->
             <TextView
                 android:id="@+id/tvAdcBanner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_info_banner"
-                android:padding="12dp"
+                android:padding="10dp"
                 android:text="ADC disponibles: 2 (GPIO0 + GPIO1)"
                 android:textColor="@color/warn"
-                android:textSize="12sp"
-                android:layout_marginBottom="6dp" />
+                android:textSize="11sp"
+                android:layout_marginBottom="12dp" />
 
-            <!-- Line sensor warning (hidden unless SPI active) -->
-            <TextView
-                android:id="@+id/tvLineWarning"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_info_banner"
-                android:padding="12dp"
-                android:text="⚠ Con SPI activo: máximo 1 sensor de línea (1 ADC disponible)"
-                android:textColor="@color/danger"
-                android:textSize="12sp"
-                android:visibility="gone"
-                android:layout_marginBottom="14dp" />
-
-            <!-- BUSES card -->
+            <!-- ═══ BUSES ═══ -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -57,8 +49,7 @@
                 android:padding="14dp"
                 android:layout_marginBottom="12dp">
 
-                <TextView
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                     android:text="BUSES DE COMUNICACIÓN"
                     android:textColor="@color/acc2" android:textSize="12sp"
                     android:textStyle="bold" android:letterSpacing="0.08"
@@ -67,46 +58,42 @@
                 <!-- I2C -->
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:orientation="horizontal" android:gravity="center_vertical"
-                    android:paddingTop="8dp" android:paddingBottom="8dp">
+                    android:paddingTop="6dp" android:paddingBottom="6dp">
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
                         android:layout_weight="1" android:orientation="vertical">
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="Bus I2C" android:textColor="@color/txt"
-                            android:textSize="13sp" android:textStyle="bold" />
+                            android:text="Bus I2C" android:textColor="@color/txt" android:textSize="13sp" android:textStyle="bold"/>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="GPIO6 (SDA) / GPIO7 (SCL)"
-                            android:textColor="@color/txt2" android:textSize="11sp" />
+                            android:text="GPIO6 (SDA) / GPIO7 (SCL)" android:textColor="@color/txt2" android:textSize="11sp"/>
                     </LinearLayout>
                     <com.google.android.material.switchmaterial.SwitchMaterial
                         android:id="@+id/switchI2c"
                         android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        app:thumbTint="@color/acc" app:trackTint="@color/bg3" />
+                        app:thumbTint="@color/acc" app:trackTint="@color/bg3"/>
                 </LinearLayout>
 
-                <View android:layout_width="match_parent" android:layout_height="1dp"
-                    android:background="@color/brd" />
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/brd"/>
 
                 <!-- SPI -->
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:orientation="horizontal" android:gravity="center_vertical"
-                    android:paddingTop="8dp" android:paddingBottom="8dp">
+                    android:paddingTop="6dp" android:paddingBottom="6dp">
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
                         android:layout_weight="1" android:orientation="vertical">
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="Bus SPI" android:textColor="@color/txt"
-                            android:textSize="13sp" android:textStyle="bold" />
+                            android:text="Bus SPI" android:textColor="@color/txt" android:textSize="13sp" android:textStyle="bold"/>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                             android:text="GPIO20/21 (CLK/MOSI) · GPIO1 (MISO) · GPIO10 (CS)"
-                            android:textColor="@color/txt2" android:textSize="11sp" />
+                            android:textColor="@color/txt2" android:textSize="11sp"/>
                     </LinearLayout>
                     <com.google.android.material.switchmaterial.SwitchMaterial
                         android:id="@+id/switchSpi"
                         android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        app:thumbTint="@color/acc" app:trackTint="@color/bg3" />
+                        app:thumbTint="@color/acc" app:trackTint="@color/bg3"/>
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- DISTANCE SENSOR card -->
+            <!-- ═══ SENSOR DE DISTANCIA — tipo y cantidad ═══ -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -115,67 +102,285 @@
                 android:padding="14dp"
                 android:layout_marginBottom="12dp">
 
-                <TextView
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="SENSOR DE DISTANCIA"
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="SENSORES DE DISTANCIA"
                     android:textColor="@color/acc2" android:textSize="12sp"
                     android:textStyle="bold" android:letterSpacing="0.08"
                     android:layout_marginBottom="10dp" />
 
-                <!-- RadioGroup for sensor type -->
+                <!-- Tipo -->
                 <RadioGroup
+                    android:id="@+id/rgDistType"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <RadioButton
-                        android:id="@+id/rbDistNone"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="10dp">
+                    <RadioButton android:id="@+id/rbDistNone"
                         android:layout_width="match_parent" android:layout_height="wrap_content"
-                        android:text="Ninguno"
-                        android:textColor="@color/txt" android:textSize="13sp"
-                        android:paddingTop="6dp" android:paddingBottom="6dp"
-                        android:checked="true" />
-
-                    <RadioButton
-                        android:id="@+id/rbDistSonar"
+                        android:text="Ninguno" android:textColor="@color/txt" android:textSize="13sp"
+                        android:paddingTop="5dp" android:paddingBottom="5dp" android:checked="true"/>
+                    <RadioButton android:id="@+id/rbDistSonar"
                         android:layout_width="match_parent" android:layout_height="wrap_content"
-                        android:text="HC-SR04 (Ultrasónico)"
+                        android:text="📡 HC-SR04 (Ultrasónico — 2 pines digitales por sensor)"
                         android:textColor="@color/txt" android:textSize="13sp"
-                        android:paddingTop="6dp" android:paddingBottom="6dp" />
-
-                    <RadioButton
-                        android:id="@+id/rbDistSharp"
+                        android:paddingTop="5dp" android:paddingBottom="5dp"/>
+                    <RadioButton android:id="@+id/rbDistSharp"
                         android:layout_width="match_parent" android:layout_height="wrap_content"
-                        android:text="Sharp GP2Y (Infrarrojo)"
+                        android:text="🔴 Sharp GP2Y0A21 (IR analógico — 1 pin ADC, modo digital)"
                         android:textColor="@color/txt" android:textSize="13sp"
-                        android:paddingTop="6dp" android:paddingBottom="6dp" />
-
-                    <RadioButton
-                        android:id="@+id/rbDistTof"
+                        android:paddingTop="5dp" android:paddingBottom="5dp"/>
+                    <RadioButton android:id="@+id/rbDistJs40f"
                         android:layout_width="match_parent" android:layout_height="wrap_content"
-                        android:text="ToF I²C (requiere I2C activo)"
+                        android:text="⚡ JS40F JJsumo (IR digital — 1 pin GPIO, HIGH=detectado)"
                         android:textColor="@color/txt" android:textSize="13sp"
-                        android:paddingTop="6dp" android:paddingBottom="6dp" />
+                        android:paddingTop="5dp" android:paddingBottom="5dp"/>
+                    <!-- ToF: reservado para I2C, no mostrar hasta implementar -->
+                    <RadioButton android:id="@+id/rbDistTof"
+                        android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:text="🔵 ToF I²C (próximamente)"
+                        android:textColor="@color/txt2" android:textSize="13sp"
+                        android:paddingTop="5dp" android:paddingBottom="5dp"
+                        android:visibility="gone"/>
                 </RadioGroup>
 
-                <View android:layout_width="match_parent" android:layout_height="1dp"
-                    android:background="@color/brd" android:layout_marginTop="8dp"
-                    android:layout_marginBottom="10dp" />
+                <!-- Cantidad -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Cantidad:" android:textColor="@color/txt2"
+                        android:textSize="12sp" android:layout_marginEnd="10dp"/>
+                    <Spinner android:id="@+id/spinnerDistCount"
+                        android:layout_width="0dp" android:layout_height="40dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_card"/>
+                </LinearLayout>
 
-                <TextView
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="Cantidad de sensores (1–3):"
-                    android:textColor="@color/txt2" android:textSize="12sp"
-                    android:layout_marginBottom="4dp" />
-
-                <Spinner
-                    android:id="@+id/spinnerDistCount"
+                <!-- PANEL SONAR — HC-SR04 -->
+                <LinearLayout
+                    android:id="@+id/panelSonarPins"
                     android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:background="@drawable/bg_card" />
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <!-- Sonar 1 -->
+                    <TextView android:id="@+id/tvSonar1Label"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Sensor 1"
+                        android:textColor="@color/info" android:textSize="11sp" android:textStyle="bold"
+                        android:layout_marginTop="4dp" android:layout_marginBottom="4dp"/>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:layout_marginBottom="6dp">
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:orientation="vertical" android:layout_marginEnd="5dp">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="TRIG" android:textColor="@color/txt2" android:textSize="11sp"/>
+                            <Spinner android:id="@+id/spinnerSonar1Trig"
+                                android:layout_width="match_parent" android:layout_height="36dp"
+                                android:background="@drawable/bg_card"/>
+                        </LinearLayout>
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="5dp">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="ECHO" android:textColor="@color/txt2" android:textSize="11sp"/>
+                            <Spinner android:id="@+id/spinnerSonar1Echo"
+                                android:layout_width="match_parent" android:layout_height="36dp"
+                                android:background="@drawable/bg_card"/>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Sonar 2 -->
+                    <TextView android:id="@+id/tvSonar2Label"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Sensor 2"
+                        android:textColor="@color/info" android:textSize="11sp" android:textStyle="bold"
+                        android:visibility="gone" android:layout_marginBottom="4dp"/>
+                    <LinearLayout android:id="@+id/panelSonar2Pins"
+                        android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:layout_marginBottom="6dp"
+                        android:visibility="gone">
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:orientation="vertical" android:layout_marginEnd="5dp">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="TRIG" android:textColor="@color/txt2" android:textSize="11sp"/>
+                            <Spinner android:id="@+id/spinnerSonar2Trig"
+                                android:layout_width="match_parent" android:layout_height="36dp"
+                                android:background="@drawable/bg_card"/>
+                        </LinearLayout>
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="5dp">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="ECHO" android:textColor="@color/txt2" android:textSize="11sp"/>
+                            <Spinner android:id="@+id/spinnerSonar2Echo"
+                                android:layout_width="match_parent" android:layout_height="36dp"
+                                android:background="@drawable/bg_card"/>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Sonar 3 -->
+                    <TextView android:id="@+id/tvSonar3Label"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Sensor 3"
+                        android:textColor="@color/info" android:textSize="11sp" android:textStyle="bold"
+                        android:visibility="gone" android:layout_marginBottom="4dp"/>
+                    <LinearLayout android:id="@+id/panelSonar3Pins"
+                        android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:layout_marginBottom="6dp"
+                        android:visibility="gone">
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:orientation="vertical" android:layout_marginEnd="5dp">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="TRIG" android:textColor="@color/txt2" android:textSize="11sp"/>
+                            <Spinner android:id="@+id/spinnerSonar3Trig"
+                                android:layout_width="match_parent" android:layout_height="36dp"
+                                android:background="@drawable/bg_card"/>
+                        </LinearLayout>
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="5dp">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="ECHO" android:textColor="@color/txt2" android:textSize="11sp"/>
+                            <Spinner android:id="@+id/spinnerSonar3Echo"
+                                android:layout_width="match_parent" android:layout_height="36dp"
+                                android:background="@drawable/bg_card"/>
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- PANEL SHARP — GP2Y0A21 -->
+                <LinearLayout
+                    android:id="@+id/panelSharpPins"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <!-- Sharp 1 -->
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Sensor 1 — Pin ADC + Umbral de detección"
+                        android:textColor="@color/info" android:textSize="11sp" android:textStyle="bold"
+                        android:layout_marginTop="4dp" android:layout_marginBottom="4dp"/>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center_vertical"
+                        android:layout_marginBottom="4dp">
+                        <TextView android:layout_width="44dp" android:layout_height="wrap_content"
+                            android:text="Pin:" android:textColor="@color/txt2" android:textSize="11sp"/>
+                        <Spinner android:id="@+id/spinnerSharp1Pin"
+                            android:layout_width="0dp" android:layout_height="36dp"
+                            android:layout_weight="1" android:background="@drawable/bg_card"/>
+                    </LinearLayout>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center_vertical"
+                        android:layout_marginBottom="10dp">
+                        <TextView android:layout_width="44dp" android:layout_height="wrap_content"
+                            android:text="Umbral:" android:textColor="@color/txt2" android:textSize="11sp"/>
+                        <SeekBar android:id="@+id/seekSharp1Thresh"
+                            android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:max="4095" android:progress="2000"
+                            android:progressTint="@color/danger" android:thumbTint="@color/acc2"/>
+                        <TextView android:id="@+id/tvSharp1Thresh"
+                            android:layout_width="42dp" android:layout_height="wrap_content"
+                            android:text="2000" android:textColor="@color/txt"
+                            android:textSize="11sp" android:fontFamily="monospace" android:gravity="end"/>
+                    </LinearLayout>
+
+                    <!-- Sharp 2 (visible si distCount>=2) -->
+                    <LinearLayout android:id="@+id/panelSharp2"
+                        android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="vertical" android:visibility="gone">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Sensor 2 — Pin ADC + Umbral"
+                            android:textColor="@color/info" android:textSize="11sp" android:textStyle="bold"
+                            android:layout_marginBottom="4dp"/>
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:orientation="horizontal" android:gravity="center_vertical"
+                            android:layout_marginBottom="4dp">
+                            <TextView android:layout_width="44dp" android:layout_height="wrap_content"
+                                android:text="Pin:" android:textColor="@color/txt2" android:textSize="11sp"/>
+                            <Spinner android:id="@+id/spinnerSharp2Pin"
+                                android:layout_width="0dp" android:layout_height="36dp"
+                                android:layout_weight="1" android:background="@drawable/bg_card"/>
+                        </LinearLayout>
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:orientation="horizontal" android:gravity="center_vertical">
+                            <TextView android:layout_width="44dp" android:layout_height="wrap_content"
+                                android:text="Umbral:" android:textColor="@color/txt2" android:textSize="11sp"/>
+                            <SeekBar android:id="@+id/seekSharp2Thresh"
+                                android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:layout_weight="1" android:max="4095" android:progress="2000"
+                                android:progressTint="@color/danger" android:thumbTint="@color/acc2"/>
+                            <TextView android:id="@+id/tvSharp2Thresh"
+                                android:layout_width="42dp" android:layout_height="wrap_content"
+                                android:text="2000" android:textColor="@color/txt"
+                                android:textSize="11sp" android:fontFamily="monospace" android:gravity="end"/>
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- PANEL JS40F — Digital -->
+                <LinearLayout
+                    android:id="@+id/panelJs40fPins"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:text="HIGH = detectado (por defecto). Invertir si el sensor da LOW al detectar."
+                        android:textColor="@color/txt2" android:textSize="11sp"
+                        android:layout_marginBottom="8dp"/>
+
+                    <!-- JS40F 1 -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center_vertical"
+                        android:layout_marginBottom="4dp">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="S1:" android:textColor="@color/info"
+                            android:textSize="12sp" android:textStyle="bold" android:layout_marginEnd="6dp"/>
+                        <Spinner android:id="@+id/spinnerJs1Pin"
+                            android:layout_width="0dp" android:layout_height="36dp"
+                            android:layout_weight="1" android:background="@drawable/bg_card" android:layout_marginEnd="6dp"/>
+                        <CheckBox android:id="@+id/cbJs1Invert"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Inv." android:textColor="@color/txt2" android:textSize="11sp"/>
+                    </LinearLayout>
+
+                    <!-- JS40F 2 -->
+                    <LinearLayout android:id="@+id/panelJs2"
+                        android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center_vertical"
+                        android:layout_marginBottom="4dp" android:visibility="gone">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="S2:" android:textColor="@color/info"
+                            android:textSize="12sp" android:textStyle="bold" android:layout_marginEnd="6dp"/>
+                        <Spinner android:id="@+id/spinnerJs2Pin"
+                            android:layout_width="0dp" android:layout_height="36dp"
+                            android:layout_weight="1" android:background="@drawable/bg_card" android:layout_marginEnd="6dp"/>
+                        <CheckBox android:id="@+id/cbJs2Invert"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Inv." android:textColor="@color/txt2" android:textSize="11sp"/>
+                    </LinearLayout>
+
+                    <!-- JS40F 3 -->
+                    <LinearLayout android:id="@+id/panelJs3"
+                        android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center_vertical"
+                        android:visibility="gone">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="S3:" android:textColor="@color/info"
+                            android:textSize="12sp" android:textStyle="bold" android:layout_marginEnd="6dp"/>
+                        <Spinner android:id="@+id/spinnerJs3Pin"
+                            android:layout_width="0dp" android:layout_height="36dp"
+                            android:layout_weight="1" android:background="@drawable/bg_card" android:layout_marginEnd="6dp"/>
+                        <CheckBox android:id="@+id/cbJs3Invert"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Inv." android:textColor="@color/txt2" android:textSize="11sp"/>
+                    </LinearLayout>
+                </LinearLayout>
+
             </LinearLayout>
 
-            <!-- LINE SENSORS card -->
+            <!-- ═══ SENSORES DE LÍNEA ═══ -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -184,27 +389,87 @@
                 android:padding="14dp"
                 android:layout_marginBottom="12dp">
 
-                <TextView
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="SENSORES DE LÍNEA (ADC)"
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="SENSORES DE LÍNEA"
                     android:textColor="@color/acc2" android:textSize="12sp"
                     android:textStyle="bold" android:letterSpacing="0.08"
-                    android:layout_marginBottom="6dp" />
+                    android:layout_marginBottom="10dp"/>
 
-                <TextView
-                    android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:text="Usan GPIO0 (ADC0) y GPIO1 (ADC1). ADC1 no disponible con SPI activo."
-                    android:textColor="@color/txt2" android:textSize="11sp"
-                    android:layout_marginBottom="8dp" />
-
-                <Spinner
-                    android:id="@+id/spinnerLineCount"
+                <!-- Tipo de sensor de línea -->
+                <RadioGroup
+                    android:id="@+id/rgLineType"
                     android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:background="@drawable/bg_card" />
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
+                    <RadioButton android:id="@+id/rbLineAdc"
+                        android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Analógico (ADC)" android:textColor="@color/txt"
+                        android:textSize="12sp" android:checked="true"/>
+                    <RadioButton android:id="@+id/rbLineDig"
+                        android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Digital (GPIO)" android:textColor="@color/txt"
+                        android:textSize="12sp"/>
+                </RadioGroup>
+
+                <!-- Cantidad -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Cantidad:" android:textColor="@color/txt2"
+                        android:textSize="12sp" android:layout_marginEnd="10dp"/>
+                    <Spinner android:id="@+id/spinnerLineCount"
+                        android:layout_width="0dp" android:layout_height="40dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_card"/>
+                </LinearLayout>
+
+                <!-- Pines de línea -->
+                <LinearLayout android:id="@+id/panelLine1"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:layout_marginBottom="4dp" android:visibility="gone">
+                    <TextView android:layout_width="26dp" android:layout_height="wrap_content"
+                        android:text="L1:" android:textColor="@color/ok"
+                        android:textSize="12sp" android:textStyle="bold"/>
+                    <Spinner android:id="@+id/spinnerLine1Pin"
+                        android:layout_width="0dp" android:layout_height="36dp"
+                        android:layout_weight="1" android:background="@drawable/bg_card"/>
+                </LinearLayout>
+                <LinearLayout android:id="@+id/panelLine2"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:visibility="gone">
+                    <TextView android:layout_width="26dp" android:layout_height="wrap_content"
+                        android:text="L2:" android:textColor="@color/ok"
+                        android:textSize="12sp" android:textStyle="bold"/>
+                    <Spinner android:id="@+id/spinnerLine2Pin"
+                        android:layout_width="0dp" android:layout_height="36dp"
+                        android:layout_weight="1" android:background="@drawable/bg_card"/>
+                </LinearLayout>
+
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="ADC usa GPIO0/GPIO1. Digital usa pines libres (ver buses activos)."
+                    android:textColor="@color/txt2" android:textSize="11sp"
+                    android:layout_marginTop="6dp"/>
             </LinearLayout>
 
-            <!-- Status label -->
+            <!-- ═══ RESUMEN ═══ -->
+            <TextView
+                android:id="@+id/tvConfigSummary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_info_banner"
+                android:padding="10dp"
+                android:text="Config: Sin sensores configurados"
+                android:textColor="@color/txt2"
+                android:textSize="11sp"
+                android:layout_marginBottom="10dp"/>
+
+            <!-- ═══ STATUS ═══ -->
             <TextView
                 android:id="@+id/tvConfigStatus"
                 android:layout_width="match_parent"
@@ -214,26 +479,25 @@
                 android:textSize="12sp"
                 android:gravity="center"
                 android:visibility="gone"
-                android:layout_marginBottom="10dp" />
+                android:layout_marginBottom="10dp"/>
 
-            <!-- Apply button -->
+            <!-- ═══ APLICAR ═══ -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnApplyConfig"
                 style="@style/FrankyBtn.Orange"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
-                android:text="✓  APLICAR CONFIGURACIÓN"
+                android:text="✓  GUARDAR Y APLICAR"
                 android:textSize="14sp"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="8dp"/>
 
-            <!-- Back button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnConfigBack"
                 style="@style/FrankyBtn.Dark"
                 android:layout_width="match_parent"
                 android:layout_height="44dp"
                 android:text="⌂  Volver"
-                android:textSize="13sp" />
+                android:textSize="13sp"/>
 
         </LinearLayout>
     </ScrollView>

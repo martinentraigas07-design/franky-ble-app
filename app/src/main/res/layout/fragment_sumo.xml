@@ -22,6 +22,25 @@
             android:paddingStart="14dp" android:paddingEnd="14dp"
             android:paddingTop="14dp"   android:paddingBottom="24dp">
 
+            <!-- Config de sensores activa -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_info_banner"
+                android:padding="10dp"
+                android:layout_marginBottom="12dp">
+                <TextView
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="⚙ " android:textColor="@color/acc2" android:textSize="12sp"/>
+                <TextView
+                    android:id="@+id/tvSensorSummary"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Sin sensores configurados"
+                    android:textColor="@color/warn" android:textSize="11sp"
+                    android:fontFamily="monospace"/>
+            </LinearLayout>
+
             <!-- Estado -->
             <LinearLayout
                 android:layout_width="match_parent"
