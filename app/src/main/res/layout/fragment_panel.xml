@@ -576,8 +576,121 @@
             </LinearLayout>
 
             <!-- ═══════════════════════════════════════════════════
-                 CARD 4 — DHT22 (temp + hum from batch JSON field t/h)
+                 CARD 3C — SENSORES DE LÍNEA (SOLO LECTURA)
+                 Visible solo cuando HardwareConfig tiene lineSensors activos.
+                 Visualiza RAW ADC/DIG + estado BLANCO(fuera)/NEGRO(dentro).
+                 La calibración de umbral se hace en Configuración ⚙.
                  ═══════════════════════════════════════════════════ -->
+            <LinearLayout
+                android:id="@+id/cardLine"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_card"
+                android:orientation="vertical"
+                android:padding="14dp"
+                android:layout_marginBottom="12dp"
+                android:visibility="gone">
+
+                <!-- Título -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="10dp">
+                    <TextView
+                        android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="SENSORES DE LÍNEA"
+                        android:textColor="@color/acc2"
+                        android:textSize="12sp" android:textStyle="bold"
+                        android:letterSpacing="0.08"/>
+                    <TextView
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Config en ⚙"
+                        android:textColor="@color/txt2" android:textSize="10sp"
+                        android:paddingStart="6dp" android:paddingEnd="6dp"
+                        android:paddingTop="2dp"  android:paddingBottom="2dp"
+                        android:background="@drawable/bg_badge"/>
+                </LinearLayout>
+
+                <!-- Sensor L1 -->
+                <LinearLayout
+                    android:id="@+id/rowLine1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="6dp"
+                    android:visibility="gone">
+                    <TextView
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="L1 "
+                        android:textColor="@color/ok" android:textSize="12sp" android:textStyle="bold"
+                        android:layout_marginEnd="8dp"/>
+                    <TextView
+                        android:id="@+id/tvLine1Pin"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="GPIO?"
+                        android:textColor="@color/txt2" android:textSize="11sp"
+                        android:layout_marginEnd="8dp"/>
+                    <TextView
+                        android:id="@+id/tvLine1Raw"
+                        android:layout_width="55dp" android:layout_height="wrap_content"
+                        android:text="--"
+                        android:textColor="@color/txt" android:textSize="13sp"
+                        android:fontFamily="monospace" android:gravity="end"
+                        android:layout_marginEnd="8dp"/>
+                    <TextView
+                        android:id="@+id/tvLine1Status"
+                        android:layout_width="90dp" android:layout_height="32dp"
+                        android:text="--"
+                        android:textColor="@color/txt" android:textSize="11sp"
+                        android:textStyle="bold" android:fontFamily="monospace"
+                        android:gravity="center" android:background="@color/bg3"/>
+                </LinearLayout>
+
+                <!-- Sensor L2 -->
+                <LinearLayout
+                    android:id="@+id/rowLine2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:visibility="gone">
+                    <TextView
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="L2 "
+                        android:textColor="@color/ok" android:textSize="12sp" android:textStyle="bold"
+                        android:layout_marginEnd="8dp"/>
+                    <TextView
+                        android:id="@+id/tvLine2Pin"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="GPIO?"
+                        android:textColor="@color/txt2" android:textSize="11sp"
+                        android:layout_marginEnd="8dp"/>
+                    <TextView
+                        android:id="@+id/tvLine2Raw"
+                        android:layout_width="55dp" android:layout_height="wrap_content"
+                        android:text="--"
+                        android:textColor="@color/txt" android:textSize="13sp"
+                        android:fontFamily="monospace" android:gravity="end"
+                        android:layout_marginEnd="8dp"/>
+                    <TextView
+                        android:id="@+id/tvLine2Status"
+                        android:layout_width="90dp" android:layout_height="32dp"
+                        android:text="--"
+                        android:textColor="@color/txt" android:textSize="11sp"
+                        android:textStyle="bold" android:fontFamily="monospace"
+                        android:gravity="center" android:background="@color/bg3"/>
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="BLANCO = fuera del dohyo. NEGRO = dentro. Umbral en Configuración ⚙."
+                    android:textColor="@color/txt2" android:textSize="11sp"
+                    android:layout_marginTop="6dp"/>
+            </LinearLayout>
             <LinearLayout
                 android:id="@+id/cardDht"
                 android:layout_width="match_parent"

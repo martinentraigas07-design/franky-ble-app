@@ -105,13 +105,8 @@ class PanelFragment : Fragment() {
 
     // ─────────────────────────────────────────────────────────────────────
     // HardwareConfig observer — única fuente de verdad para sensores
-    //
-    // El Panel Industrial VISUALIZA la configuración establecida en
-    // ConfigFragment → HardwareConfig → ViewModel. No la modifica.
-    //
-    // Cuando se detecta un sensor Sharp activo en la config, el Panel
-    // actualiza activeSharpPin y activeSharpThreshold para que el
-    // indicador de detección funcione correctamente con esos parámetros.
+    // Muestra/oculta cards y actualiza parámetros de visualización.
+    // El Panel NUNCA modifica HardwareConfig.
     // ─────────────────────────────────────────────────────────────────────
 
     private fun observeHwConfig() {
@@ -120,24 +115,40 @@ class PanelFragment : Fragment() {
                 vm.hwConfig.collect { cfg ->
                     if (!isAdded) return@collect
 
-                    // Buscar el primer sensor Sharp activo en los slots de distancia
-                    val sharpSlot: SensorSlot? = cfg.distSlots
+                    // ── Sharp ──────────────────────────────────────────────
+                    val sharpSlot = cfg.distSlots
                         .firstOrNull { it.type == SensorType.SHARP && it.isValid() }
-
                     if (sharpSlot != null) {
-                        // Sharp configurado: actualizar parámetros de visualización
-                        activeSharpPin       = sharpSlot.pin1      // 0=ADC0, 1=ADC1
-                        activeSharpThreshold = sharpSlot.threshold // umbral ADC
+                        activeSharpPin       = sharpSlot.pin1
+                        activeSharpThreshold = sharpSlot.threshold
                         b.cardSharp.visibility = View.VISIBLE
-                        // Mostrar umbral activo como referencia (solo lectura)
-                        b.tvSharpThresh.text = sharpSlot.threshold.toString()
-                        b.tvSharpStatus.text = "--"
-                        b.tvSharpRaw.text    = "--"
+                        b.tvSharpThresh.text   = sharpSlot.threshold.toString()
+                        b.tvSharpStatus.text   = "--"
+                        b.tvSharpRaw.text      = "--"
                     } else {
-                        // No hay Sharp configurado: ocultar card y resetear estado
-                        activeSharpPin       = 0
-                        activeSharpThreshold = 0
+                        activeSharpPin = 0; activeSharpThreshold = 0
                         b.cardSharp.visibility = View.GONE
+                    }
+
+                    // ── Sensores de línea ──────────────────────────────────
+                    // Derivado de HardwareConfig.lineSlots — no hay estado local
+                    val ls = cfg.lineSlots.filter { it.type != SensorType.NONE && it.isValid() }
+                    if (ls.isNotEmpty()) {
+                        b.cardLine.visibility = View.VISIBLE
+                        b.rowLine1.visibility = View.VISIBLE
+                        b.tvLine1Pin.text     = "GPIO${ls[0].pin1}"
+                        b.tvLine1Status.text  = "--"
+                        b.tvLine1Raw.text     = "--"
+                        if (ls.size >= 2) {
+                            b.rowLine2.visibility = View.VISIBLE
+                            b.tvLine2Pin.text     = "GPIO${ls[1].pin1}"
+                            b.tvLine2Status.text  = "--"
+                            b.tvLine2Raw.text     = "--"
+                        } else {
+                            b.rowLine2.visibility = View.GONE
+                        }
+                    } else {
+                        b.cardLine.visibility = View.GONE
                     }
                 }
             }
@@ -145,10 +156,7 @@ class PanelFragment : Fragment() {
     }
 
     // ─────────────────────────────────────────────────────────────────────
-    // Sharp visualizer — actualiza indicador DETECTADO/LIBRE
-    //
-    // Solo se llama cuando activeSharpThreshold > 0 (hay Sharp configurado).
-    // Usa el ADC del pin configurado en HardwareConfig, no un pin local.
+    // Sharp visualizer — DETECTADO/LIBRE según umbral de HardwareConfig
     // ─────────────────────────────────────────────────────────────────────
 
     private fun updateSharpIndicator(adcRaw: Int) {
@@ -159,6 +167,27 @@ class PanelFragment : Fragment() {
         val bgColor = if (detected) R.color.danger else R.color.ok
         b.tvSharpStatus.setBackgroundColor(ContextCompat.getColor(requireContext(), bgColor))
         b.tvSharpStatus.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Line sensor visualizer — BLANCO(fuera dohyo)/NEGRO(dentro dohyo)
+    // threshold=0 para sensores digitales (LINE_DIG); rawValue=0/1
+    // threshold>0 para analógicos (LINE_ADC); rawValue=ADC 0-4095
+    // BLANCO = superficie reflectante = borde del dohyo = PELIGRO
+    // ─────────────────────────────────────────────────────────────────────
+
+    private fun updateLineIndicator(
+        rawTv: TextView, statusTv: TextView,
+        rawValue: Int, threshold: Int, isAnalog: Boolean
+    ) {
+        if (!isAdded) return
+        rawTv.text = if (rawValue < 0) "--" else rawValue.toString()
+        if (rawValue < 0) { statusTv.text = "--"; return }
+        val onLine = if (isAnalog && threshold > 0) (rawValue > threshold) else (rawValue == 1)
+        statusTv.text = if (onLine) "BLANCO" else "NEGRO"
+        val bgColor = if (onLine) R.color.warn else R.color.ok
+        statusTv.setBackgroundColor(ContextCompat.getColor(requireContext(), bgColor))
+        statusTv.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -338,11 +367,32 @@ class PanelFragment : Fragment() {
                     }
 
                     // ── Sharp visualizador ────────────────────────────────
-                    // Pin y umbral vienen de HardwareConfig (observeHwConfig),
-                    // no de variables locales del fragment.
                     if (activeSharpThreshold > 0) {
                         val adcRaw = if (activeSharpPin == 0) s.adc0 else s.adc1
                         if (adcRaw >= 0) updateSharpIndicator(adcRaw)
+                    }
+
+                    // ── Sensores de línea visualizador ────────────────────
+                    // lineValues[0],[1] vienen del batch "line":[v1,v2] del firmware
+                    // Para LINE_ADC: rawValue es ADC 0-4095; threshold de HardwareConfig
+                    // Para LINE_DIG: rawValue es 0/1; threshold=0
+                    val lsCfg = vm.hwConfig.value.lineSlots
+                        .filter { it.type != SensorType.NONE && it.isValid() }
+                    if (lsCfg.isNotEmpty() && s.lineValues.isNotEmpty()) {
+                        val v0 = s.lineValues.getOrElse(0) { -1 }
+                        if (v0 >= 0 && b.rowLine1.visibility == View.VISIBLE) {
+                            val isAdc = lsCfg[0].type == SensorType.LINE_ADC
+                            updateLineIndicator(b.tvLine1Raw, b.tvLine1Status,
+                                v0, lsCfg[0].threshold, isAdc)
+                        }
+                        if (lsCfg.size >= 2 && b.rowLine2.visibility == View.VISIBLE) {
+                            val v1 = s.lineValues.getOrElse(1) { -1 }
+                            if (v1 >= 0) {
+                                val isAdc = lsCfg[1].type == SensorType.LINE_ADC
+                                updateLineIndicator(b.tvLine2Raw, b.tvLine2Status,
+                                    v1, lsCfg[1].threshold, isAdc)
+                            }
+                        }
                     }
 
                     // ── Entradas digitales ────────────────────────────────

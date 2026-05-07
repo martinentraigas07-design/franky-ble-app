@@ -152,16 +152,25 @@ class ConfigFragment : Fragment() {
     private fun setupLineTypeListener() {
         b.rgLineType.setOnCheckedChangeListener { _, _ ->
             refreshLinePinSpinners()
+            updateLineThresholdVisibility()
             updateSummary()
         }
+    }
+
+    // Muestra umbral de línea solo cuando el tipo es analógico (LINE_ADC)
+    private fun updateLineThresholdVisibility() {
+        val isAdc = b.rbLineAdc.isChecked
+        b.panelLine1Thresh.isVisible = isAdc && b.panelLine1.isVisible
+        b.panelLine2Thresh.isVisible = isAdc && b.panelLine2.isVisible
     }
 
     private fun updateLinePinPanels(count: Int) {
         b.panelLine1.isVisible = count >= 1
         b.panelLine2.isVisible = count >= 2
+        updateLineThresholdVisibility()
     }
 
-    // ── SeekBars (umbral Sharp) ───────────────────────────────────────────
+    // ── SeekBars (umbral Sharp + umbral línea ADC) ────────────────────────
     private fun setupSeekBars() {
         fun bindSeek(seek: SeekBar, tv: TextView) {
             tv.text = seek.progress.toString()
@@ -176,6 +185,9 @@ class ConfigFragment : Fragment() {
         }
         bindSeek(b.seekSharp1Thresh, b.tvSharp1Thresh)
         bindSeek(b.seekSharp2Thresh, b.tvSharp2Thresh)
+        // Umbral de línea analógica — se muestra/oculta según tipo
+        bindSeek(b.seekLine1Thresh, b.tvLine1Thresh)
+        bindSeek(b.seekLine2Thresh, b.tvLine2Thresh)
     }
 
     // ── Spinners de pines ─────────────────────────────────────────────────
@@ -274,7 +286,11 @@ class ConfigFragment : Fragment() {
             val isAdc = ls[0].type == SensorType.LINE_ADC
             val pinList = if (isAdc) adcPins else digPins
             setSpinnerByValue(b.spinnerLine1Pin, pinList, ls[0].pin1)
-            if (ls.size >= 2) setSpinnerByValue(b.spinnerLine2Pin, pinList, ls[1].pin1)
+            if (isAdc) b.seekLine1Thresh.progress = ls[0].threshold
+            if (ls.size >= 2) {
+                setSpinnerByValue(b.spinnerLine2Pin, pinList, ls[1].pin1)
+                if (isAdc) b.seekLine2Thresh.progress = ls[1].threshold
+            }
         }
 
         updateDistPinPanels(b.spinnerDistCount.selectedItemPosition + 1)
@@ -363,9 +379,11 @@ class ConfigFragment : Fragment() {
         val lineType = if (lineIsAdc) SensorType.LINE_ADC else SensorType.LINE_DIG
         val linePins = if (lineIsAdc) adcPins else digPins
         if (lineCount >= 1) lineSlots.add(SensorSlot(lineType,
-            linePins.getOrElse(b.spinnerLine1Pin.selectedItemPosition) { if (lineIsAdc) 0 else 6 }))
+            linePins.getOrElse(b.spinnerLine1Pin.selectedItemPosition) { if (lineIsAdc) 0 else 6 },
+            threshold = if (lineIsAdc) b.seekLine1Thresh.progress else 0))
         if (lineCount >= 2) lineSlots.add(SensorSlot(lineType,
-            linePins.getOrElse(b.spinnerLine2Pin.selectedItemPosition) { if (lineIsAdc) 1 else 7 }))
+            linePins.getOrElse(b.spinnerLine2Pin.selectedItemPosition) { if (lineIsAdc) 1 else 7 },
+            threshold = if (lineIsAdc) b.seekLine2Thresh.progress else 0))
 
         return HardwareConfig(
             i2cEnabled = i2c,

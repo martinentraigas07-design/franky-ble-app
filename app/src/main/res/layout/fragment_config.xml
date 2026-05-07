@@ -427,28 +427,68 @@
                         android:background="@drawable/bg_card"/>
                 </LinearLayout>
 
-                <!-- Pines de línea -->
+                <!-- Pines de línea + umbral (solo LINE_ADC) -->
                 <LinearLayout android:id="@+id/panelLine1"
                     android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:orientation="horizontal" android:gravity="center_vertical"
-                    android:layout_marginBottom="4dp" android:visibility="gone">
-                    <TextView android:layout_width="26dp" android:layout_height="wrap_content"
-                        android:text="L1:" android:textColor="@color/ok"
-                        android:textSize="12sp" android:textStyle="bold"/>
-                    <Spinner android:id="@+id/spinnerLine1Pin"
-                        android:layout_width="0dp" android:layout_height="36dp"
-                        android:layout_weight="1" android:background="@drawable/bg_card"/>
+                    android:orientation="vertical"
+                    android:layout_marginBottom="6dp" android:visibility="gone">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center_vertical"
+                        android:layout_marginBottom="4dp">
+                        <TextView android:layout_width="26dp" android:layout_height="wrap_content"
+                            android:text="L1:" android:textColor="@color/ok"
+                            android:textSize="12sp" android:textStyle="bold"/>
+                        <Spinner android:id="@+id/spinnerLine1Pin"
+                            android:layout_width="0dp" android:layout_height="36dp"
+                            android:layout_weight="1" android:background="@drawable/bg_card"/>
+                    </LinearLayout>
+                    <!-- Umbral solo visible para LINE_ADC -->
+                    <LinearLayout android:id="@+id/panelLine1Thresh"
+                        android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center_vertical"
+                        android:visibility="gone">
+                        <TextView android:layout_width="44dp" android:layout_height="wrap_content"
+                            android:text="Umbral:" android:textColor="@color/txt2" android:textSize="11sp"/>
+                        <SeekBar android:id="@+id/seekLine1Thresh"
+                            android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:max="4095" android:progress="1500"
+                            android:progressTint="@color/ok" android:thumbTint="@color/acc2"/>
+                        <TextView android:id="@+id/tvLine1Thresh"
+                            android:layout_width="42dp" android:layout_height="wrap_content"
+                            android:text="1500" android:textColor="@color/txt"
+                            android:textSize="11sp" android:fontFamily="monospace" android:gravity="end"/>
+                    </LinearLayout>
                 </LinearLayout>
+
                 <LinearLayout android:id="@+id/panelLine2"
                     android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:orientation="vertical"
                     android:visibility="gone">
-                    <TextView android:layout_width="26dp" android:layout_height="wrap_content"
-                        android:text="L2:" android:textColor="@color/ok"
-                        android:textSize="12sp" android:textStyle="bold"/>
-                    <Spinner android:id="@+id/spinnerLine2Pin"
-                        android:layout_width="0dp" android:layout_height="36dp"
-                        android:layout_weight="1" android:background="@drawable/bg_card"/>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center_vertical"
+                        android:layout_marginBottom="4dp">
+                        <TextView android:layout_width="26dp" android:layout_height="wrap_content"
+                            android:text="L2:" android:textColor="@color/ok"
+                            android:textSize="12sp" android:textStyle="bold"/>
+                        <Spinner android:id="@+id/spinnerLine2Pin"
+                            android:layout_width="0dp" android:layout_height="36dp"
+                            android:layout_weight="1" android:background="@drawable/bg_card"/>
+                    </LinearLayout>
+                    <LinearLayout android:id="@+id/panelLine2Thresh"
+                        android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center_vertical"
+                        android:visibility="gone">
+                        <TextView android:layout_width="44dp" android:layout_height="wrap_content"
+                            android:text="Umbral:" android:textColor="@color/txt2" android:textSize="11sp"/>
+                        <SeekBar android:id="@+id/seekLine2Thresh"
+                            android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:max="4095" android:progress="1500"
+                            android:progressTint="@color/ok" android:thumbTint="@color/acc2"/>
+                        <TextView android:id="@+id/tvLine2Thresh"
+                            android:layout_width="42dp" android:layout_height="wrap_content"
+                            android:text="1500" android:textColor="@color/txt"
+                            android:textSize="11sp" android:fontFamily="monospace" android:gravity="end"/>
+                    </LinearLayout>
                 </LinearLayout>
 
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content"

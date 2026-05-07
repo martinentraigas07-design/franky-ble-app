@@ -175,13 +175,31 @@ private val cmdChannel   = Channel<WriteRequest>(capacity = 128)
         if (o.has("s")) {
             _state.value = o.getString("s")
 
-            // distances: firmware sends "snr":[cm1,cm2,cm3]
-            val snrArr = o.optJSONArray("snr")
-            val distances = if (snrArr != null)
-                (0 until snrArr.length()).map { snrArr.getInt(it) }
-            else List(3) { -1 }
+            // [B1] distances: firmware v4.0 envía "snr":[cm] (array de 1)
+            //      "dist":[d0,d1,d2] para los slots de CONFIG
+            //      Compatibilidad hacia atrás: si "snr" es int, lo envolve en lista
+            val distances: List<Int> = when {
+                o.has("dist") -> {
+                    // v4.0: "dist":[d0,d1,d2] — slots CONFIG configurados
+                    val arr = o.optJSONArray("dist")
+                    if (arr != null) (0 until arr.length()).map { arr.getInt(it) }
+                    else listOf(-1, -1, -1)
+                }
+                o.has("snr") -> {
+                    // Puede ser array (v4.0 snr:[N]) o int (v3.x legacy snr:N)
+                    val snrArr = o.optJSONArray("snr")
+                    if (snrArr != null) {
+                        // v4.0: array — tomar primer elemento
+                        listOf(snrArr.getInt(0)) + List(2) { -1 }
+                    } else {
+                        // v3.x legacy: int simple — envolver en lista
+                        listOf(o.optInt("snr", -1)) + List(2) { -1 }
+                    }
+                }
+                else -> listOf(-1, -1, -1)
+            }
 
-            // line sensors: firmware sends "line":[v1,v2]
+            // [B2] line sensors: firmware v4.0 envía "line":[v0,v1]
             val lineArr = o.optJSONArray("line")
             val lineValues = if (lineArr != null)
                 (0 until lineArr.length()).map { lineArr.getInt(it) }

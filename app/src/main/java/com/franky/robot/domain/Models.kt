@@ -53,7 +53,7 @@ data class SensorSlot(
         SensorType.HC_SR04  -> "SONAR:$pin1:$pin2:0:0"
         SensorType.SHARP    -> "SHARP:$pin1:-1:$threshold:0"
         SensorType.JS40F    -> "JS40F:$pin1:-1:0:${if (invertLogic) 1 else 0}"
-        SensorType.LINE_ADC -> "LADC:$pin1:-1:0:0"
+        SensorType.LINE_ADC -> "LADC:$pin1:-1:$threshold:0"
         SensorType.LINE_DIG -> "LDIG:$pin1:-1:0:${if (invertLogic) 1 else 0}"
     }
 
@@ -62,8 +62,8 @@ data class SensorSlot(
         SensorType.HC_SR04  -> "HC-SR04 TRIG=GPIO$pin1 ECHO=GPIO$pin2"
         SensorType.SHARP    -> "Sharp GP2Y ADC${pin1} umbral=$threshold"
         SensorType.JS40F    -> "JS40F GPIO$pin1${if (invertLogic) " (INV)" else ""}"
-        SensorType.LINE_ADC -> "Línea ADC GPIO$pin1"
-        SensorType.LINE_DIG -> "Línea DIG GPIO$pin1"
+        SensorType.LINE_ADC -> "Línea ADC GPIO$pin1 umbral=$threshold"
+        SensorType.LINE_DIG -> "Línea DIG GPIO$pin1${if (invertLogic) " (INV)" else ""}"
     }
 }
 
